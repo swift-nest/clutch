@@ -17,7 +17,7 @@ public enum Help {
   public static let HELP =
     """
     \(LABEL)
-      from https://github.com/swift-clutch/clutch \(VERSION)
+      from https://github.com/swift-nest/clutch \(VERSION)
 
     \(SYNTAX)
 
