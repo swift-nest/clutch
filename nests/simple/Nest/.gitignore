@@ -1,0 +1,8 @@
+.DS_Store
+/.build
+/Packages
+/*.xcodeproj
+/*.doccbuild
+xcuserdata/
+.swiftpm/
+/xunit-output.xml
