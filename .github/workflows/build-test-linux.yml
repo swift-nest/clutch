@@ -17,4 +17,4 @@ jobs:
     - name: Build
       run: swift build -Xswiftc -suppress-warnings
     - name: Test
-      run: swift test -Xswiftc -suppress-warnings
+      run: CLUTCH_CI=on swift test -Xswiftc -suppress-warnings

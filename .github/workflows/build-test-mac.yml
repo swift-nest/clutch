@@ -12,4 +12,4 @@ jobs:
     - name: Build
       run: swift build -vv
     - name: Test
-      run: swift test -vv
+      run: CLUTCH_CI=on swift test -vv
