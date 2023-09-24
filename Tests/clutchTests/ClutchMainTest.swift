@@ -36,9 +36,13 @@ final class ClutchMainTest: XCTestCase {
       verbose("no HOME")
       return
     }
+    let samplesDir = "\(home)/git/Nest/Samples"
+    guard true == FoundationScript.fileStatus(samplesDir) else {
+      verbose("no samples")
+      return
+    }
     let list = "peers-Nest"
     let commands = [list]
-    let samplesDir = "\(home)/git/Nest/Samples"
     let names = ["nobuild", "rebuild", "updatebuild", "newbuild"]
     for name in names {  // [list] ["rebuild"]
       let scriptArgs =
