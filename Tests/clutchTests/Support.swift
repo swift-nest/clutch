@@ -1,9 +1,10 @@
 import Script
 import XCTest
+@testable import clutchLib
 
 enum TestHelper {
   // true when committed; sometimes false when local
-  static let inCI = false
+  static let inCI = nil != FoundationScript.environment("CLUTCH_CI")
   static let quiet = true
   typealias SrcLoc = (file: StaticString, line: UInt)
   static func loc(
@@ -30,4 +31,8 @@ enum TestHelper {
     XCTAssertEqual(exp, act, label ?? "", file: debug.0, line: debug.1)
   }
 
+}
+enum Either<LHS, RHS> {
+  case lhs(LHS)
+  case rhs(RHS)
 }
