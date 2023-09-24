@@ -37,7 +37,9 @@ final class ClutchMainTest: XCTestCase {
       return
     }
     let samplesDir = "\(home)/git/Nest/Samples"
-    guard true == FoundationScript.fileStatus(samplesDir) else {
+    let isDir = true
+    let isFile = !isDir
+    guard isDir == FoundationScript.fileStatus(samplesDir) else {
       verbose("no samples")
       return
     }
@@ -45,10 +47,17 @@ final class ClutchMainTest: XCTestCase {
     let commands = [list]
     let names = ["nobuild", "rebuild", "updatebuild", "newbuild"]
     for name in names {  // [list] ["rebuild"]
-      let scriptArgs =
-        commands.contains(name)
-        ? [name]
-        : ["\(samplesDir)/\(name).swift"]
+      let scriptArgs: [String]
+      if commands.contains(name) {
+        scriptArgs = [name]
+      } else {
+        let path = "\(samplesDir)/\(name).swift"
+        guard isFile == FoundationScript.fileStatus(path) else {
+          verbose("sample \"\(name)\" not found at: \(path)")
+          continue
+        }
+        scriptArgs = [path]
+      }
       let suffix = "clutch \(name): \(scriptArgs)"
 
       verbose("Running \(suffix)")
