@@ -11,8 +11,6 @@ Swift scripting is easier with clutch when
 - you want scattered scripts checked into a common package, or
 - scripts build & run faster because most code is pre-built in the nest package
 
-(Otherwise, use `#!/usr/bin/env swift` to run Swift scripts.)
-
 ## Quickstart
 
 Tested on macOS 12+ and Linux (Ubuntu LTS/latest)
@@ -170,13 +168,18 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
     - Not tested yet on different variants of `Package.swift`
 - Command set, CLI interface, and configuration could change
 
-## Related libraries of interest
-- [Swift Argument Parser](https://github.com/apple/swift-argument-parser) - CLI
-- [Shwift](https://github.com/GeorgeLyon/Shwift) - async cross-platform scripting
-- [swift-sh](https://github.com/mxcl/swift-sh) - dependencies as import comments
+## Alternatives and related libraries
+- The `swift` command works fine if no libraries are needed.
+    - Use `#!/usr/bin/env swift` at the start of a script file to run directly
+    - `swift script.swift` does the same, without the `#!` hash-bang line
+    - `swift -e 'statement{; statement}' runs a snippet of code
+    - Or `generateCode | swift -` to run code from the input stream
+- [swift-sh](https://github.com/mxcl/swift-sh) builds and runs using libraries from import comments
+- Try [Swift Argument Parser](https://github.com/apple/swift-argument-parser) to simplify writing CLI's
+- Try [Shwift](https://github.com/GeorgeLyon/Shwift) for async cross-platform scripting
 
 ## Development
 - License: Apache 2.0
+- Please [create an issue](https://github.com/swift-nest/clutch/issues) with any feedback, to help get to 1.0 :)
 - See [README-clutch](README-clutch.md)
-
 
