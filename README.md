@@ -37,11 +37,11 @@ EOF
 chmod +x hello 
 ./hello          # builds, runs `~/git/Nest/Sources/hello/main.swift`
 
-# Use clutch directly to run or manage peers
+# Use clutch directly to run or manage peers or nests
 clutch hello      # run by name from anywhere
-clutch clean.Data # run peer `clean` in nest `Data`
+clutch hello.Nest # specify nest if not the default
 
-clutch cat-hello  # echo peer source (as a template)
+clutch cat-hello  # output peer source (`clutch cat-start > newscript.swift`)
 clutch path-hello # echo peer path (`vi "$(clutch path-hello)"`)
 clutch peers-Nest # list peers known in nest `Nest`
 clutch dir-Nest   # emit location of nest `Nest`
