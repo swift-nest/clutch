@@ -286,6 +286,9 @@ public struct ClutchDriver {
     options: PeerNest.BuildOptions,
     args: [String]
   ) async throws {
+    if !peerSrc.status.isFile {
+      throw Err.err("peer module (\(peerMod)) not found in nest (\(nest))")
+    }
     let fileSeeker = FileItemSeeker(systemCalls: sysCalls)
     var bin = binary
     if !binary.status.isFile || peerSrc.lastModOr0 > binary.lastModOr0 {
