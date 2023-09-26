@@ -70,7 +70,7 @@ public struct PeerNest {
     }
   }
 
-  enum EnvName: String, CaseIterable {
+  public enum EnvName: String, CaseIterable {
     typealias Source = (PeerNest.EnvName) -> String?
     /// path overrides all others
     case NEST_PATH
