@@ -1,7 +1,20 @@
 
 extension ClutchDriver {
   /// Parameterized errors
-  public enum Problem { // too complicated?
+  public enum Problem {
+    public struct ErrParts: Error { // complicates b/c parts not orthogonal
+      public let ask: DriverConfig.UserAsk
+      public let part: ReportingSystem
+      public let input: BadInput
+      public let reason: ReasonBad
+      public let fixHint: String?
+      public var message: String {
+        let inputStr = input.isNotInput ? "" : " \(input)"
+        let hintStr = nil == fixHint ? "" : "\n\(fixHint!)"
+        return "\(part)(\(ask)) error\(inputStr) \(reason)\(hintStr)"
+      }
+    }
+
     public enum ReportingSystem {
       case clutch, system, swiftBuild, peerBuild, peerRun
     }
@@ -55,25 +68,12 @@ extension ClutchDriver {
       }
     }
     
-    public struct ErrParts: Error {
-      public let ask: DriverConfig.UserAsk
-      public let part: ReportingSystem
-      public let input: BadInput
-      public let reason: ReasonBad
-      public let fixHint: String?
-      public var message: String {
-        let inputStr = input.isNotInput ? "" : " \(input)"
-        let hintStr = nil == fixHint ? "" : "\n\(fixHint!)"
-        return "\(part)(\(ask)) error\(inputStr) \(reason)\(hintStr)"
-      }
-    }
-
     class ErrBuilder { // as task-local?
       @TaskLocal static var local = ErrBuilder()
       var ask: DriverConfig.UserAsk
       var part: ReportingSystem
       var input: BadInput
-      var args: [String]
+      var args: [String] // TODO: args unused
       init(
         ask: DriverConfig.UserAsk = .programErr,
         part: ReportingSystem = .clutch,
