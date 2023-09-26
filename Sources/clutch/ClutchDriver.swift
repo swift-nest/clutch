@@ -68,9 +68,13 @@ public struct ClutchDriver {
     // ---------- report errors
     if let askNote = ask.errorAskNote {
       switch askNote.ask {
-      case .helpDetail: throw Err.err(Help.HELP)
-      case .helpSyntax: throw Err.err("\(Help.SYNTAX)")
-      case .syntaxErr: 
+      case .helpDetail: 
+        stdout(Help.HELP)
+        return
+      case .helpSyntax: 
+        stdout(Help.SYNTAX)
+        return
+      case .syntaxErr:
         throw makeErr.errq(.badSyntax(askNote.note))
       case .programErr:
         throw makeErr.errq(.programError(askNote.note))
@@ -288,7 +292,8 @@ public struct ClutchDriver {
     let makeErr = MakeErr.local
     makeErr.set(input: .resource(.peer), part: .swiftBuild)
     if !peerSrc.status.isFile {
-      throw Err.err("peer module (\(peerMod)) not found in nest (\(nest))")
+      let m = "peer module (\(peerMod)) not found in nest (\(nest))"
+      throw makeErr.err(reason: .fileNotFound(m))
     }
     let fileSeeker = FileItemSeeker(systemCalls: sysCalls)
     var bin = binary
@@ -297,7 +302,7 @@ public struct ClutchDriver {
       let swift = try await sysCalls.findExecutable(named: "swift")
       let swiftItem = fileSeeker.seekFile(.swift, swift)
       if !swiftItem.status.isFile {
-        throw Err.err("Unable to find swift")
+        throw makeErr.err(reason: .fileNotFound("swift"))
       }
       try await build(
         nestDir: nest.filePath,
@@ -306,9 +311,11 @@ public struct ClutchDriver {
         swift: swiftItem
       )
       bin = fileSeeker.seekFile(.executable, bin.fullPath)
-    }
-    guard bin.status.isFile else {
-      throw Err.err("Unable to build \(bin)")
+      guard bin.status.isFile else {
+        throw makeErr.err(
+          reason: .fileNotFound("\(bin)"),
+          input: .resource(.executable))
+      }
     }
 
     try await runPeerBinary(bin, args: args)
@@ -318,6 +325,11 @@ public struct ClutchDriver {
     _ bin: NestItem,
     args: [String]
   ) async throws {
+    let makeErr = MakeErr.local
+    makeErr.set(input: .resource(.executable), part: .peerRun)
+    guard bin.status.isFile else {
+      throw makeErr.err(reason: .fileNotFound("\(bin)"))
+    }
     try await sysCalls.runProcess(bin.fullPath, args: args)
   }
 
