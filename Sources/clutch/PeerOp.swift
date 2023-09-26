@@ -1,6 +1,7 @@
 import struct SystemPackage.FilePath
 
 public struct PeerOp {
+  typealias MakeErr = ClutchDriver.Problem.ErrBuilder
   let sysCalls: SystemCalls
   let fileSeeker: FileItemSeeker
   init(
@@ -93,7 +94,11 @@ public struct PeerOp {
       if let n = peerDir.lastComponent?.string, !n.isEmpty {
         name = n
       } else {
-        throw Err.err("Empty script name for \(script) in \(peerDir)")
+        let m = "Empty script name for \(script) in \(peerDir)"
+        throw MakeErr.local.err(
+          reason: .badSyntax(m),
+          input: .resource(.peerSourceDir)
+        )
       }
     }
     let filepath = peerDir.appending("\(name).swift").string
