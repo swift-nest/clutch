@@ -1,7 +1,4 @@
 extension FileItemSeeker {
-  func findFile(_ NestKey: NestKey, _ path: String) throws -> NestItem {
-    try find(kind: .file, NestKey: NestKey, path, status: nil)
-  }
   func seekFile(_ NestKey: NestKey, _ path: String) -> NestItem {
     seek(kind: .file, NestKey: NestKey, path, status: nil)
   }

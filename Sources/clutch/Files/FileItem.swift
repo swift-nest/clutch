@@ -38,26 +38,13 @@ public enum FileStatus: CustomStringConvertible {
 struct FileItemSeeker {
   let systemCalls: SystemCalls
 
-  public func find<Key: FileKey>(
-    kind: FileStatus = .file,
-    NestKey: Key,
-    _ path: String,
-    status: FileStatus? = nil
-  ) throws -> FileItem<Key> {
-    return try seekImpl(kind, NestKey, path, true, status: status)
-  }
-
   public func seek<Key: FileKey>(
     kind: FileStatus = .file,
     NestKey: Key,
     _ path: String,
     status: FileStatus? = nil
   ) -> FileItem<Key> {
-    do {
-      return try seekImpl(kind, NestKey, path, false, status: status)
-    } catch {
-      preconditionFailure("not required, threw \(error) for \(kind) \(path)")
-    }
+    seekImpl(kind, NestKey, path, false, status: status)
   }
 
   func seekImpl<Key: FileKey>(
@@ -66,19 +53,10 @@ struct FileItemSeeker {
     _ input: String,
     _ required: Bool,
     status: FileStatus? = nil
-  ) throws -> FileItem<Key> {
+  ) -> FileItem<Key> {
     let status = status ?? systemCalls.seekFileStatus(input)
     let filePath = FilePath(input)
     let lastModified = !status.exists ? nil : systemCalls.lastModified(input)
-    if required {
-      guard status.exists && status.isFile == kind.isFile else {
-        let name = NestKey.str
-        throw Err.err("missing \(kind) != \(status) \(name) at \(input)")
-      }
-      guard nil != lastModified else {
-        throw Err.err("Unable to find \(kind) \(input)")
-      }
-    }
     return FileItem(
       key: NestKey,
       filePath: filePath,

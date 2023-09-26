@@ -305,7 +305,7 @@ public struct ClutchDriver {
         options: options,
         swift: swiftItem
       )
-      bin = try fileSeeker.findFile(.executable, bin.fullPath)
+      bin = fileSeeker.seekFile(.executable, bin.fullPath)
     }
     guard bin.status.isFile else {
       throw Err.err("Unable to build \(bin)")
