@@ -9,13 +9,25 @@ class KnownSystemCallFixtures {
   let HOME = "/ESCF_HOME"
   let dirSep = "/"  // urk
 
+  struct ScenarioCase {
+    static func sc(
+      _ calls: KnownSystemCalls,
+      _ args: ScenarioArgs,
+      _ checks: [Check]
+    ) -> Self {
+      Self(calls: calls, args: args, checks: checks)
+    }
+    let calls: KnownSystemCalls
+    let args: ScenarioArgs
+    let checks: [Check]
+  }
   /// Configure ``KnownSystemCalls`` for ``ClutchCommandScenario``.
   ///
   /// Errors are reported in ``KnownSystemCalls/internalErrors``
   public func newScenario(
     _ scenario: ClutchCommandScenario,
     name: String? = nil
-  ) -> (calls: KnownSystemCalls, args: ScenarioArgs, checks: [ScenarioCheck]) {
+  ) -> ScenarioCase {
     let nest = "Nest"
     let module = "script"
     let env = KnownSystemCalls()
@@ -27,7 +39,7 @@ class KnownSystemCallFixtures {
     let (_, _, _, _) = (scriptPath, scriptFilename, scriptMod, code)
 
     let args: [String]  // every branch must set
-    var checks = [ScenarioCheck]()
+    var checks = [Check]()
 
     func makeArgs() -> ScenarioArgs {
       ScenarioArgs(
@@ -49,7 +61,7 @@ class KnownSystemCallFixtures {
     case .script(let script):
       args = [scriptPath]
       if script != .uptodate {
-        checks.append(.ck(.runProcess, "\"--product\", \"\(module)\""))
+        checks.append(.sysCall(.runProcess, "\"--product\", \"\(module)\""))
       }
       switch script {
       case .uptodate:
@@ -64,43 +76,43 @@ class KnownSystemCallFixtures {
         executables(env, nest: nest, binLastMod: scriptMod, peers: module)
       case .peerStale:
         nestPeers(env, nest: nest, peerMod: scriptMod.prior(), peers: module)
-        checks.append(.ck(.writeFile, module))  // TODO: more precisely
+        checks.append(.sysCall(.writeFile, module))  // TODO: more precisely
       case .new:
         nestPeers(env, nest: nest)  // with no peers, initializes Package.swift
-        checks.append(.ck(.writeFile, module))  // TODO: more precisely
-        checks.append(.ck(.createDir, module))
-        checks.append(.ck(.writeFile, "Package.swift"))
+        checks.append(.sysCall(.writeFile, module))  // TODO: more precisely
+        checks.append(.sysCall(.createDir, module))
+        checks.append(.sysCall(.writeFile, "Package.swift"))
       }
     case .nest(let nestCommand):
       switch nestCommand {
       case .dir:
         args = commandArgs(.nestDir, nest)
-        checks.append(.ck(.printOut, "Nest"))  // TODO: more precisely...
+        checks.append(.sysCall(.printOut, "Nest"))  // TODO: more precisely...
       case .peers:
         args = commandArgs(.nestPeers, nest)
         nestPeers(env, nest: nest, peerMod: scriptMod.next(), peers: "p1", "p2")
-        checks.append(.ck(.printOut, "p1 p2"))
+        checks.append(.sysCall(.printOut, "p1 p2"))
       }
     case .peer(let peerCommand):
       switch peerCommand {
       case .cat:
         args = commandArgs(.catPeer, module)
-        let (env2, _, _) = newScenario(.script(.peerStale), name: scenario.name)
-        checks.append(.ck(.printOut, Content.minCodeBody))
-        return (env2, makeArgs(), checks)
+        let sc = newScenario(.script(.peerStale), name: scenario.name)
+        checks.append(.sysCall(.printOut, Content.minCodeBody))
+        return .sc(sc.calls, makeArgs(), checks)
       case .run:
         args = commandArgs(.runPeer, module)
-        let (env2, _, _) = newScenario(.script(.uptodate), name: scenario.name)
-        checks.append(.ck(.runProcess, module))  // TODO: more precisely...
-        return (env2, makeArgs(), checks)
+        let sc = newScenario(.script(.uptodate), name: scenario.name)
+        checks.append(.sysCall(.runProcess, module))  // TODO: more precisely...
+        return .sc(sc.calls, makeArgs(), checks)
       case .path:
         args = commandArgs(.pathPeer, module)
-        let (env2, _, _) = newScenario(.script(.uptodate), name: scenario.name)
-        checks.append(.ck(.printOut, ".swift"))  // TODO: more precisely...
-        return (env2, makeArgs(), checks)
+        let sc = newScenario(.script(.uptodate), name: scenario.name)
+        checks.append(.sysCall(.printOut, ".swift"))  // TODO: more precisely...
+        return .sc(sc.calls, makeArgs(), checks)
       }
     }
-    return (env, makeArgs(), checks)
+    return .sc(env, makeArgs(), checks)
   }
 
   func scriptPathFilenameLastModCode(
@@ -206,6 +218,45 @@ class KnownSystemCallFixtures {
   ) {
     env.internalError(message, file: file, line: line)
   }
+  enum Check: Comparable, CustomStringConvertible {
+
+    case sysCall(SystemCallsFunc, String)
+    case clutchErr(String)
+    case error(String)
+
+    // ------- CustomStringConvertible
+    var description: String {
+      "\(name)(\"\(match)\")"
+    }
+    var match: String {
+      switch self {
+      case let .sysCall(_, match): return match
+      case let .clutchErr(match):  return match
+      case let .error(match): return match
+      }
+    }
+    var name: String {
+      Self.NAMES[index + Self.ERR_COUNT]
+    }
+    var index: Int {
+      switch self {
+      case .sysCall: return 0
+      case .clutchErr:  return -1
+      case .error: return -2
+      }
+    }
+
+    static let NAMES = ["sysCall", "clutchErr", "error"]
+    static let ERR_COUNT = 2
+
+    // ------- Comparable
+    static func < (lhs: Self, rhs: Self) -> Bool {
+      if lhs.index == rhs.index {
+        return lhs.match < rhs.match
+      }
+      return lhs.index < rhs.index
+    }
+  }
   struct ScenarioCheck: CustomStringConvertible {
     static func ck(_ call: SystemCallsFunc, _ match: String) -> Self {
       Self(call: call, match: match)
@@ -221,9 +272,41 @@ class KnownSystemCallFixtures {
     let nest: String
     let scriptPath: String
     let args: [String]
+    func with(
+      module: String? = nil,
+      nest: String? = nil,
+      scriptPath: String? = nil,
+      args: [String]? = nil
+    ) -> Self {
+      ScenarioArgs(
+        module: module ?? self.module,
+        nest: nest ?? self.nest,
+        scriptPath: scriptPath ?? self.scriptPath,
+        args: args ?? self.args
+      )
+    }
   }
 }
 
+extension [KnownSystemCallFixtures.Check] {
+  var errors: [(label: String, match: String)] {
+    compactMap { next in
+      switch next {
+      case let .clutchErr(match): return ("\(next)", match)
+      case let .error(match): return ("\(next)", match)
+      case .sysCall: return nil
+      }
+    }
+  }
+  var scenarios: [KnownSystemCallFixtures.ScenarioCheck] {
+    compactMap { next in
+      if case let .sysCall(funct, match) = next {
+        return .init(call: funct, match: match)
+      }
+      return nil
+    }
+  }
+}
 extension LastModified {
   fileprivate static let t0: LastModified = 0.0
   fileprivate static let t1: LastModified = 1.0
