@@ -24,7 +24,7 @@ final class DriverTests: XCTestCase {
     //let cases: [Scenario] = [.nest(.peers)]
     for scenario in cases {
       let scenarioCase =  fixtures.newScenario(scenario)
-      try await runTest(scenarioCase)
+      await runTest(scenarioCase)
     }
   }
 
@@ -35,7 +35,7 @@ final class DriverTests: XCTestCase {
     let unfound = "1BAD_NAME" // invalid as module name
     checks += [.errPart(.reason(.badSyntax(unfound)))]
     sc.with(args: ["\(prefix)\(unfound)"], checks: checks)
-    try await runTest(sc)
+    await runTest(sc)
   }
 
   public func testErrNestNotFound() async throws {
@@ -43,7 +43,7 @@ final class DriverTests: XCTestCase {
     let prefix = commandPrefixes.nestDir
     let unfound = "NOT_FOUND" // valid as module name, but no such dir
     sc.with(args: ["\(prefix)\(unfound)"], checks: [.error(unfound)])
-    try await runTest(sc)
+    await runTest(sc)
   }
 
   public func testErrNestNoManifest() async throws {
@@ -52,36 +52,43 @@ final class DriverTests: XCTestCase {
       throw setupFailed("No manifest to remove")
     }
     sc.with(checks: [.errPart(.input(.resource(.manifest)))])
-    try await runTest(sc)
+    await runTest(sc)
   }
 
   // MARK: Helpers
   func setupFailed(_ m: String) -> Err {
     Err.err("Setup failed: \(m)")
   }
-  func runTest(_ test: ScenarioCase) async throws {
+  func runTest(_ test: ScenarioCase, caller: StaticString = #function) async {
     guard test.calls.internalErrors.isEmpty else {
       for (error, srcLoc) in test.calls.internalErrors {
         XCTFail(error, file: srcLoc.file, line: srcLoc.line)
       }
       return
     }
-    let (recordCalls, err) = await run(test)
+    let (recordCalls, err) = await runCheckingErrMismatch(test)
+    checkCalls(test,  calls: recordCalls) // check even for errors
+
     guard let err = err else {
-      checkNormal(test,  calls: recordCalls)
       return
-    }
-    for check in test.checks.scenarios {
-      XCTFail("\(test) expected \(check)")
     }
     guard let errParts = err as? ErrParts else {
-      checkError(test, error: "\(err)")
+      checkErrorExpected(test, error: "\(err)")
       return
     }
-    checkErrParts(test, errParts: errParts)
+    checkErrPartsExpected(test, errParts: errParts)
+    if dataToStdout || !TestHelper.quiet || !test.pass {
+      // permit missing HOME since that might be tested
+      let home = test.calls.envKeyValue["HOME"] ?? "UNKNOWN HOME"
+      let lines = recordCalls.renderLines(home: home, date: true)
+      let linesJoined = lines.joined(separator: "\n")
+      let prefix = "## \(caller) (\(test.scenario.name)) data"
+      let dump = "\(prefix) - START\n\(linesJoined)\n\(prefix) - END"
+      print(dump)
+    }
   }
 
-  func checkNormal(_ test: ScenarioCase, calls: RecordSystemCalls) {
+  func checkCalls(_ test: ScenarioCase, calls: RecordSystemCalls) {
     let found = calls.renders
     func match(_ check: SceneCheck, _ callCheck: CallCheck) -> Bool {
       check.call == callCheck.funct
@@ -90,52 +97,53 @@ final class DriverTests: XCTestCase {
     for check in test.checks.scenarios {
       if nil == found.first(where: { match(check, $0) }) {
         XCTFail("\(test) expected \(check)")
+        fail(&test.pass)
       }
     }
     // already reported extra errors
   }
-  func checkErrParts(_ test: ScenarioCase, errParts actual: ErrParts) {
+  func checkErrPartsExpected(_ test: ScenarioCase, errParts actual: ErrParts) {
     for expect in test.checks.errParts {
       if let errorMessage = expect.check(actual) {
         XCTFail("\(test) \(errorMessage)")
+        fail(&test.pass)
       }
     }
   }
-  func checkError(_ test: ScenarioCase, error: String) {
+  func checkErrorExpected(_ test: ScenarioCase, error: String) {
     for check in test.checks.errors {
       if !error.contains(check.match) {
         XCTFail("\(test)\nexp error: \(check.label)\ngot error: \(error)")
+        fail(&test.pass)
       }
     }
   }
 
-  public func run(
+  func runCheckingErrMismatch(
     _ test: ScenarioCase
   ) async -> (RecordSystemCalls, (any Error)?) {
     let (recordCalls, error) = await runCapturing(test)
-    var dump = dataToStdout || !TestHelper.quiet
     let expectedErrors = test.checks.filter{ $0.isError }
     let expectError = !expectedErrors.isEmpty
     let haveError = nil != error
     if haveError != expectError {
       if let err = error {
         XCTFail("[\(test.scenario.name)] \(err)") // unexpected error
+        fail(&test.pass)
       } else {
         for expectedError in expectedErrors {
           XCTFail("[\(test.scenario.name)] missed error: \(expectedError)")
+          fail(&test.pass)
         }
       }
-      dump = true
-    }
-    if dump {
-      let home = test.calls.envKeyValue["HOME"] ?? "UNKNOWN HOME"  // ? fail-fast?
-      let lines = recordCalls.renderLines(home: home, date: true)
-      let linesJoined = lines.joined(separator: "\n")
-      let prefix = "## \(test.scenario.name) data"
-      let dump = "\(prefix) - START\n\(linesJoined)\n\(prefix) - END"
-      print(dump)
     }
     return (recordCalls, error)
+  }
+
+  func fail(_ pass: inout Bool) {
+    if pass {
+      pass = false
+    }
   }
 
   func runCapturing(
