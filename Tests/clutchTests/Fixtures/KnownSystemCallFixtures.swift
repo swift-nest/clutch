@@ -9,17 +9,44 @@ class KnownSystemCallFixtures {
   let HOME = "/ESCF_HOME"
   let dirSep = "/"  // urk
 
-  struct ScenarioCase {
+  class ScenarioCase {
     static func sc(
+      _ scenario: ClutchCommandScenario,
       _ calls: KnownSystemCalls,
       _ args: ScenarioArgs,
       _ checks: [Check]
     ) -> Self {
-      Self(calls: calls, args: args, checks: checks)
+      Self(
+        scenario: scenario,
+        calls: calls,
+        args: args,
+        checks: checks)
     }
+    let scenario: ClutchCommandScenario
     let calls: KnownSystemCalls
-    let args: ScenarioArgs
-    let checks: [Check]
+    var args: ScenarioArgs
+    var checks: [Check]
+    required init(
+      scenario: ClutchCommandScenario,
+      calls: KnownSystemCalls,
+      args: ScenarioArgs,
+      checks: [Check]) {
+      self.scenario = scenario
+      self.calls = calls
+      self.args = args
+      self.checks = checks
+    }
+    public func with(
+      args: [String]? = nil,
+      checks: [Check]? = nil
+    ) {
+      if let args = args {
+        self.args = self.args.with(args: args)
+      }
+      if let checks = checks {
+        self.checks = checks
+      }
+    }
   }
   /// Configure ``KnownSystemCalls`` for ``ClutchCommandScenario``.
   ///
@@ -99,20 +126,20 @@ class KnownSystemCallFixtures {
         args = commandArgs(.catPeer, module)
         let sc = newScenario(.script(.peerStale), name: scenario.name)
         checks.append(.sysCall(.printOut, Content.minCodeBody))
-        return .sc(sc.calls, makeArgs(), checks)
+        return .sc(sc.scenario, sc.calls, makeArgs(), checks)
       case .run:
         args = commandArgs(.runPeer, module)
         let sc = newScenario(.script(.uptodate), name: scenario.name)
         checks.append(.sysCall(.runProcess, module))  // TODO: more precisely...
-        return .sc(sc.calls, makeArgs(), checks)
+        return .sc(sc.scenario, sc.calls, makeArgs(), checks)
       case .path:
         args = commandArgs(.pathPeer, module)
         let sc = newScenario(.script(.uptodate), name: scenario.name)
         checks.append(.sysCall(.printOut, ".swift"))  // TODO: more precisely...
-        return .sc(sc.calls, makeArgs(), checks)
+        return .sc(sc.scenario, sc.calls, makeArgs(), checks)
       }
     }
-    return .sc(env, makeArgs(), checks)
+    return .sc(scenario, env, makeArgs(), checks)
   }
 
   func scriptPathFilenameLastModCode(
@@ -219,15 +246,19 @@ class KnownSystemCallFixtures {
     env.internalError(message, file: file, line: line)
   }
   enum Check: Comparable, CustomStringConvertible {
-
     case sysCall(SystemCallsFunc, String)
     case clutchErr(String)
     case error(String)
+
+    var isError: Bool {
+      0 > index
+    }
 
     // ------- CustomStringConvertible
     var description: String {
       "\(name)(\"\(match)\")"
     }
+
     var match: String {
       switch self {
       case let .sysCall(_, match): return match
@@ -246,7 +277,7 @@ class KnownSystemCallFixtures {
       }
     }
 
-    static let NAMES = ["sysCall", "clutchErr", "error"]
+    static let NAMES = ["error", "clutchErr", "sysCall"]
     static let ERR_COUNT = 2
 
     // ------- Comparable
