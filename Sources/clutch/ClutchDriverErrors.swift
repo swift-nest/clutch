@@ -6,7 +6,7 @@ extension ClutchDriver {
     // LocalizedError: in Foundation
     public struct ErrParts: Error, CustomStringConvertible {
       public let ask: DriverConfig.UserAsk
-      public let part: Agent
+      public let agent: Agent
       public let input: BadInput
       public let reason: ReasonBad
       public let fixHint: String?
@@ -16,13 +16,13 @@ extension ClutchDriver {
       public var message: String {
         let inputStr = input.isNotInput ? "" : " \(input)"
         let hintStr = nil == fixHint ? "" : "\n\(fixHint!)"
-        return "\(part)(\(ask)) error\(inputStr) \(reason)\(hintStr)"
+        return "\(agent)(\(ask)) error\(inputStr) \(reason)\(hintStr)"
       }
       public var detail: String {
         let lines = [
           "message: \(message)",
           "    ask: \(ask)",
-          "   part: \(part)",
+          "  agent: \(agent)",
           "  input: \(input)",
           " reason: \(reason)",
           "    fix: \(fixHint ?? "")"
@@ -122,7 +122,7 @@ extension ClutchDriver {
       ) -> ErrParts {
         ErrParts(
           ask: ask ?? self.ask,
-          part: part ?? self.part,
+          agent: part ?? self.part,
           input: input ?? self.input,
           reason: reason,
           fixHint: fixHint)
@@ -136,7 +136,7 @@ extension ClutchDriver {
       ) -> ErrParts {
         ErrParts(
           ask: ask ?? self.ask,
-          part: part ?? self.part,
+          agent: part ?? self.part,
           input: input ?? self.input,
           reason: reason,
           fixHint: fixHint)
