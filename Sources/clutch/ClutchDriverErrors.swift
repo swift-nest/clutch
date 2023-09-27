@@ -31,25 +31,45 @@ extension ClutchDriver {
       }
     }
 
-    public enum Agent: String {
+    public enum Agent: String, Equatable {
       case clutch, system, swiftBuild, peerBuild, peerRun
     }
 
-    public enum BadInput {
+    public enum BadInput: Equatable, CustomStringConvertible {
       case notInput
       case CLI(String)
       case environmentVariable(PeerNest.EnvName)
       //case configFile
       case resource(PeerNest.ResourceKey)
+      public var description: String {
+        switch self {
+        case .notInput: return name
+        case let .CLI(s): return "\(name)(\"\(s)\")"
+        case let .environmentVariable(v): return "\(name)(\(v.key))"
+        case let .resource(r): return "\(name)(\(r.str))"
+        }
+      }
       var isNotInput: Bool {
         if case .notInput = self {
           return true
         }
         return false
       }
+      var name: String {
+        Self.names[index]
+      }
+      var index: Int {
+        switch self {
+        case .notInput: return 0
+        case .CLI(_): return 1
+        case .environmentVariable(_): return 2
+        case .resource(_): return 3
+        }
+      }
+      static let names = ["noInput", "CLI", "EnvVar", "resource"]
     }
     
-    public enum ReasonBad {
+    public enum ReasonBad: Equatable {
       case badSyntax(String)
       case fileNotFound(String)
       case dirNotFound(String)
@@ -84,7 +104,7 @@ extension ClutchDriver {
       }
     }
     
-    class ErrBuilder { // as task-local?
+    class ErrBuilder {
       @TaskLocal static var local = ErrBuilder()
       var ask: DriverConfig.UserAsk
       var part: Agent
