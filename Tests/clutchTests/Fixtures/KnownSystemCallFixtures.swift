@@ -247,7 +247,7 @@ class KnownSystemCallFixtures {
   }
   enum Check: Comparable, CustomStringConvertible {
     case sysCall(SystemCallsFunc, String)
-    case clutchErr(String)
+    case errPart(ErrPartCheck)
     case error(String)
 
     var isError: Bool {
@@ -256,14 +256,14 @@ class KnownSystemCallFixtures {
 
     // ------- CustomStringConvertible
     var description: String {
-      "\(name)(\"\(match)\")"
+      "\(name)(\(match))"
     }
 
     var match: String {
       switch self {
-      case let .sysCall(_, match): return match
-      case let .clutchErr(match):  return match
-      case let .error(match): return match
+      case let .sysCall(call, match): return "\(call)(\"\(match))"
+      case let .errPart(check):  return "\(check)"
+      case let .error(match): return "\"\(match)\""
       }
     }
     var name: String {
@@ -272,7 +272,7 @@ class KnownSystemCallFixtures {
     var index: Int {
       switch self {
       case .sysCall: return 0
-      case .clutchErr:  return -1
+      case .errPart:  return -1
       case .error: return -2
       }
     }
@@ -320,13 +320,20 @@ class KnownSystemCallFixtures {
 }
 
 extension [KnownSystemCallFixtures.Check] {
+  var errParts: [ErrPartCheck] {
+    compactMap {
+      if case let .errPart(err) = $0 {
+        return err
+      }
+      return nil
+    }
+  }
   var errors: [(label: String, match: String)] {
     compactMap { next in
-      switch next {
-      case let .clutchErr(match): return ("\(next)", match)
-      case let .error(match): return ("\(next)", match)
-      case .sysCall: return nil
+      if case let .error(match) = next {
+        return ("\(next)", match)
       }
+      return nil
     }
   }
   var scenarios: [KnownSystemCallFixtures.ScenarioCheck] {
