@@ -6,7 +6,7 @@ extension ClutchDriver {
     // LocalizedError: in Foundation
     public struct ErrParts: Error, CustomStringConvertible {
       public let ask: DriverConfig.UserAsk
-      public let part: ReportingSystem
+      public let part: Agent
       public let input: BadInput
       public let reason: ReasonBad
       public let fixHint: String?
@@ -31,7 +31,7 @@ extension ClutchDriver {
       }
     }
 
-    public enum ReportingSystem: String {
+    public enum Agent: String {
       case clutch, system, swiftBuild, peerBuild, peerRun
     }
 
@@ -87,12 +87,12 @@ extension ClutchDriver {
     class ErrBuilder { // as task-local?
       @TaskLocal static var local = ErrBuilder()
       var ask: DriverConfig.UserAsk
-      var part: ReportingSystem
+      var part: Agent
       var input: BadInput
       var args: [String] // TODO: args unused
       init(
         ask: DriverConfig.UserAsk = .programErr,
-        part: ReportingSystem = .clutch,
+        part: Agent = .clutch,
         input: BadInput = .notInput,
         args: [String] = []
       ) {
@@ -103,7 +103,7 @@ extension ClutchDriver {
       }
       public func set(
         input: BadInput? = nil,
-        part: ReportingSystem? = nil,
+        part: Agent? = nil,
         ask: DriverConfig.UserAsk? = nil,
         args: [String]? = nil
       ) {
@@ -116,7 +116,7 @@ extension ClutchDriver {
       public func err(
         reason: ReasonBad,
         input: BadInput? = nil,
-        part: ReportingSystem? = nil,
+        part: Agent? = nil,
         ask: DriverConfig.UserAsk? = nil,
         fixHint: String? = nil
       ) -> ErrParts {
@@ -130,7 +130,7 @@ extension ClutchDriver {
       public func errq(
         _ reason: ReasonBad,
         _ input: BadInput? = nil,
-        _ part: ReportingSystem? = nil,
+        _ part: Agent? = nil,
         _ ask: DriverConfig.UserAsk? = nil,
         fixHint: String? = nil
       ) -> ErrParts {
