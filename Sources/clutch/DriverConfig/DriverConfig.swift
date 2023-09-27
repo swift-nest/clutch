@@ -50,7 +50,7 @@ public enum DriverConfig {
           let nest = seeker.seekDir(.nest, nestPath)
           if nest.status.isDir {
             if i > 0 {
-              error = "ignoring names \(names[0..<i])"
+              error = "Found nest ignoring names \(names[0..<i])"
             }
             return (nest, name, error)
           }
@@ -76,7 +76,7 @@ public enum DriverConfig {
         if (0 == i) {
           return result
         }
-        let dirErr = "After trying base dirs \(baseDirs[0..<i])"
+        let dirErr = "Found nest after trying base dirs \(baseDirs[0..<i])"
         guard let prior = result.error else {
           return (result.nest, result.name, dirErr)
         }
