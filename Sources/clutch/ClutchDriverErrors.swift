@@ -2,20 +2,36 @@
 extension ClutchDriver {
   /// Parameterized errors
   public enum Problem {
-    public struct ErrParts: Error { // complicates b/c parts not orthogonal
+    // complicates b/c parts not orthogonal
+    // LocalizedError: in Foundation
+    public struct ErrParts: Error, CustomStringConvertible {
       public let ask: DriverConfig.UserAsk
       public let part: ReportingSystem
       public let input: BadInput
       public let reason: ReasonBad
       public let fixHint: String?
+      public var description: String {
+        message
+      }
       public var message: String {
         let inputStr = input.isNotInput ? "" : " \(input)"
         let hintStr = nil == fixHint ? "" : "\n\(fixHint!)"
         return "\(part)(\(ask)) error\(inputStr) \(reason)\(hintStr)"
       }
+      public var detail: String {
+        let lines = [
+          "message: \(message)",
+          "    ask: \(ask)",
+          "   part: \(part)",
+          "  input: \(input)",
+          " reason: \(reason)",
+          "    fix: \(fixHint ?? "")"
+        ]
+        return lines.joined(separator: "\n")
+      }
     }
 
-    public enum ReportingSystem {
+    public enum ReportingSystem: String {
       case clutch, system, swiftBuild, peerBuild, peerRun
     }
 

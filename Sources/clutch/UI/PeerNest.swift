@@ -3,7 +3,7 @@ public typealias NestKey = PeerNest.ResourceKey
 public struct PeerNest {
 
   /// Summary of resource accessed
-  public enum ResourceKey: String, FileKey {
+  public enum ResourceKey: String, FileKey, CustomStringConvertible {
     /// Script source file
     case script
 
@@ -19,6 +19,10 @@ public struct PeerNest {
     case HOME
     case swift
 
+    public var description: String {
+      str
+    }
+    
     public var str: String { rawValue }
 
     public var filenames: [String] {

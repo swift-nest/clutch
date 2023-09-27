@@ -222,7 +222,7 @@ public struct ClutchDriver {
       // run checks and throwing preparation before mutating operations
       let manifest = nestStatus[.manifest]
       if !manifest.status.isFile {
-        let m = "No manifest to update in nest: \(nestStatus[.nest])"
+        let m = "No manifest in nest: \(nestStatus[.nest])"
         throw MakeErr.local.errq(.fileNotFound(m), .resource(.manifest))
       }
       let peerDir = peerStatus[.peerSourceDir]
@@ -299,11 +299,11 @@ public struct ClutchDriver {
     if !binary.status.isFile || peerSrc.lastModOr0 > binary.lastModOr0 {
       let makeErr = MakeErr.local
       if !peerSrc.status.isFile {
-        let m = "peer module (\(peerMod)) not found in nest (\(nest))"
+        let m = "peer module (\(peerMod)) not in nest (\(nest))"
         throw makeErr.err(reason: .fileNotFound(m), input: .resource(.peer))
       }
       if !nestManifest.status.isFile {
-        let m = "manifest (\(nestManifest.fullPath)) not found in nest (\(nest))"
+        let m = "manifest (\(nestManifest.fullPath)) not in nest (\(nest))"
         throw makeErr.err(reason: .fileNotFound(m), input: .resource(.manifest))
       }
       let fileSeeker = FileItemSeeker(systemCalls: sysCalls)
