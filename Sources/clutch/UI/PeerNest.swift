@@ -20,6 +20,16 @@ public struct PeerNest {
     case swift
 
     public var str: String { rawValue }
+
+    public var filenames: [String] {
+      switch self {
+      case .manifest: return ["Package.swift"]
+      case .nestSourcesDir: return ["Sources"]
+      case .nestBinDir: return ["debug", "release"]
+      case .swift: return ["swift"]
+      default: return []
+      }
+    }
   }
 
   public struct BuildOptions {
