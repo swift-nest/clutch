@@ -58,6 +58,7 @@ class KnownSystemCalls {
     Err.err(message)
   }
 }
+
 // MARK: internal error reporting
 extension KnownSystemCalls {
   func internalError(
@@ -192,5 +193,44 @@ extension KnownSystemCalls: SystemCalls {
     if let lastMod = fileLastModified[path] {
       fileLastModified[path] = lastMod + 1.0  // TODO: last-mod increment size
     }
+  }
+}
+
+// MARK: injecting errors by modifying state
+extension KnownSystemCalls {
+  func findPaths(_ matching: PeerNest.ResourceKey) -> [String] {
+    var result = [String]()
+    for match in matching.filenames {
+      result += fileStatus.keys.filter { $0.contains(match) }
+    }
+    return result
+  }
+
+  @discardableResult
+  func remove(
+    _ resource: PeerNest.ResourceKey,
+    deleteMany: Bool = false
+  ) -> Bool {
+    let paths = findPaths(resource)
+    if paths.isEmpty || (!deleteMany && paths.count > 1) {
+      return false
+    }
+    for path in paths {
+      if !removeFileOrDir(path: path) {
+        return false
+      }
+    }
+    return true
+  }
+
+  @discardableResult
+  func removeFileOrDir(path: String) -> Bool {
+    let result = nil != fileStatus[path]
+    || nil != fileLastModified[path]
+    || nil != fileContent[path]
+    fileStatus[path] = nil
+    fileLastModified[path] = nil
+    fileContent[path] = nil
+    return result
   }
 }
