@@ -162,7 +162,7 @@ extension SystemCalls {
 
 extension DriverConfig {
   /// Clutch operations as requested/provoked by user
-  public enum UserAsk: CaseIterable {
+  public enum UserAsk: Equatable, CaseIterable {
     /// Build/run script with peer in nest
     case script  // filepath, ModuleName.forModule
 
@@ -197,7 +197,7 @@ extension DriverConfig {
     public var prefix: String? {
       switch self {
       case .catPeer: return "cat-"
-      case .runPeer: return "run-"
+      case .runPeer: return "run-" // but unqualified name is run
       case .pathPeer: return "path-"
       case .nestDir: return "dir-"
       case .nestPeers: return "peers-"
