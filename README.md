@@ -172,7 +172,7 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
 - The `swift` command works fine if no libraries are needed.
     - Use `#!/usr/bin/env swift` at the start of a script file to run directly
     - `swift script.swift` does the same, without the `#!` hash-bang line
-    - `swift -e 'statement{; statement}' runs a snippet of code
+    - `swift -e 'statement{; statement}'` runs a snippet of code
     - Or `generateCode | swift -` to run code from the input stream
 - [swift-sh](https://github.com/mxcl/swift-sh) builds and runs using libraries from import comments
 - Try [Swift Argument Parser](https://github.com/apple/swift-argument-parser) to simplify writing CLI's
