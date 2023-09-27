@@ -140,6 +140,7 @@ public struct ClutchDriver {
         peerMod: peerModule,
         peerSrc: peerStat[.peer],
         nest: nestStat[.nest],
+        nestManifest: nestStat[.manifest],
         binary: peerStat[.executable],
         options: options,
         args: peerArgs
@@ -260,6 +261,7 @@ public struct ClutchDriver {
       peerMod: peerName,
       peerSrc: updatedPeer,
       nest: nestStatus[.nest],
+      nestManifest: nestStatus[.manifest],
       binary: peerStatus[.executable],
       options: options,
       args: args
@@ -278,6 +280,9 @@ public struct ClutchDriver {
       let err = "Invalid nest name: \(nest.name)"
       throw MakeErr.local.err(reason: .bad(err), input: .resource(.nest))
     }
+    if let error = nest.error {
+      throw MakeErr.local.err(reason: .bad(error), input: .resource(.nest))
+    }
     return NestPaths(nestModule, nest.nest.filePath)
   }
 
@@ -285,19 +290,23 @@ public struct ClutchDriver {
     peerMod: ModuleName,
     peerSrc: NestItem,
     nest: NestItem,
+    nestManifest: NestItem,
     binary: NestItem,
     options: PeerNest.BuildOptions,
     args: [String]
   ) async throws {
-    let makeErr = MakeErr.local
-    makeErr.set(input: .resource(.peer), part: .swiftBuild)
-    if !peerSrc.status.isFile {
-      let m = "peer module (\(peerMod)) not found in nest (\(nest))"
-      throw makeErr.err(reason: .fileNotFound(m))
-    }
-    let fileSeeker = FileItemSeeker(systemCalls: sysCalls)
     var bin = binary
     if !binary.status.isFile || peerSrc.lastModOr0 > binary.lastModOr0 {
+      let makeErr = MakeErr.local
+      if !peerSrc.status.isFile {
+        let m = "peer module (\(peerMod)) not found in nest (\(nest))"
+        throw makeErr.err(reason: .fileNotFound(m), input: .resource(.peer))
+      }
+      if !nestManifest.status.isFile {
+        let m = "manifest (\(nestManifest.fullPath)) not found in nest (\(nest))"
+        throw makeErr.err(reason: .fileNotFound(m), input: .resource(.manifest))
+      }
+      let fileSeeker = FileItemSeeker(systemCalls: sysCalls)
       // urk: silly system calls: executable -> string -> executable
       let swift = try await sysCalls.findExecutable(named: "swift")
       let swiftItem = fileSeeker.seekFile(.swift, swift)
