@@ -12,11 +12,12 @@ final class DriverTests: XCTestCase {
   typealias Check = KnownSystemCallFixtures.Check
   typealias SceneCheck = KnownSystemCallFixtures.ScenarioCheck
   typealias CallCheck = RecordSystemCalls.IndexFuncCall
-  typealias ClutchErr = ClutchDriver.Problem.ErrParts
+  typealias ErrParts = ClutchDriver.Problem.ErrParts
   typealias UserAsk = DriverConfig.UserAsk
 
   let fixtures = KnownSystemCallFixtures()
   let dataToStdout = false
+  let commandPrefixes = CommandPrefixes()
 
   public func testAllScenarios() async throws {
     let cases = Scenario.allCases
@@ -27,29 +28,34 @@ final class DriverTests: XCTestCase {
     }
   }
 
+  public func testErrNestNameBad() async throws {
+    let sc =  fixtures.newScenario(.nest(.dir))
+    let prefix = commandPrefixes.nestDir
+    var checks: [Check] = [.errPart(.ask(.syntaxErr))] // actual is syntax err
+    let unfound = "1BAD_NAME" // invalid as module name
+    checks += [.errPart(.reason(.badSyntax(unfound)))]
+    sc.with(args: ["\(prefix)\(unfound)"], checks: checks)
+    try await runTest(sc)
+  }
+
   public func testErrNestNotFound() async throws {
-    let scenario: Scenario = .nest(.dir)
-    let sc =  fixtures.newScenario(scenario)
-    sc.calls.remove(.manifest)
-    guard let prefix = UserAsk.nestDir.prefix else {
-      throw setupFailed("no prefix on UserAsk.nestDir")
-    }
-    let unfound = "NOT_FOUND"
+    let sc =  fixtures.newScenario(.nest(.dir))
+    let prefix = commandPrefixes.nestDir
+    let unfound = "NOT_FOUND" // valid as module name, but no such dir
     sc.with(args: ["\(prefix)\(unfound)"], checks: [.error(unfound)])
     try await runTest(sc)
   }
 
-  public func testErrNestSansManifest() async throws {
-    let scenario: Scenario = .peer(.run)
-    let sc =  fixtures.newScenario(scenario)
+  public func testErrNestNoManifest() async throws {
+    let sc =  fixtures.newScenario(.peer(.run))
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
     }
-    let match = "manifest"
-    sc.with(checks: [.error(match)])
+    sc.with(checks: [.errPart(.input(.resource(.manifest)))])
     try await runTest(sc)
   }
 
+  // MARK: Helpers
   func setupFailed(_ m: String) -> Err {
     Err.err("Setup failed: \(m)")
   }
@@ -62,17 +68,20 @@ final class DriverTests: XCTestCase {
     }
     let (recordCalls, err) = await run(test)
     guard let err = err else {
-      check(test,  calls: recordCalls)
+      checkNormal(test,  calls: recordCalls)
       return
     }
-    guard let clutchError = err as? ClutchDriver.Problem.ErrParts else {
-      check(test, error: err)
+    for check in test.checks.scenarios {
+      XCTFail("\(test) expected \(check)")
+    }
+    guard let errParts = err as? ErrParts else {
+      checkError(test, error: "\(err)")
       return
     }
-    check(test, clutchError: clutchError)
+    checkErrParts(test, errParts: errParts)
   }
 
-  func check(_ test: ScenarioCase, calls: RecordSystemCalls) {
+  func checkNormal(_ test: ScenarioCase, calls: RecordSystemCalls) {
     let found = calls.renders
     func match(_ check: SceneCheck, _ callCheck: CallCheck) -> Bool {
       check.call == callCheck.funct
@@ -83,20 +92,16 @@ final class DriverTests: XCTestCase {
         XCTFail("\(test) expected \(check)")
       }
     }
-    for error in test.checks.errors {
-      XCTFail("\(test) expected error \(error.label)")
+    // already reported extra errors
+  }
+  func checkErrParts(_ test: ScenarioCase, errParts actual: ErrParts) {
+    for expect in test.checks.errParts {
+      if let errorMessage = expect.check(actual) {
+        XCTFail("\(test) \(errorMessage)")
+      }
     }
-  }
-  func check(_ test: ScenarioCase, clutchError: ClutchErr) {
-    checkError(test, error: "\(clutchError)")
-  }
-  func check(_ test: ScenarioCase, error: Error) {
-    checkError(test, error: "\(error)")
   }
   func checkError(_ test: ScenarioCase, error: String) {
-    for check in test.checks.scenarios {
-      XCTFail("\(test) expected \(check)")
-    }
     for check in test.checks.errors {
       if !error.contains(check.match) {
         XCTFail("\(test)\nexp error: \(check.label)\ngot error: \(error)")
@@ -116,8 +121,9 @@ final class DriverTests: XCTestCase {
       if let err = error {
         XCTFail("[\(test.scenario.name)] \(err)") // unexpected error
       } else {
-        let expected = expectedErrors.map { "\($0)" }
-        XCTFail("[\(test.scenario.name)] expected errors \(expected)")
+        for expectedError in expectedErrors {
+          XCTFail("[\(test.scenario.name)] missed error: \(expectedError)")
+        }
       }
       dump = true
     }
@@ -149,5 +155,17 @@ final class DriverTests: XCTestCase {
       err = error
     }
     return (recordCalls, err)
+  }
+  struct CommandPrefixes {
+    let nestDir: String
+    let nestPeers: String
+    let peerPath: String
+    let catPeer: String
+    init() {
+      self.nestDir = UserAsk.nestDir.prefix!
+      self.nestPeers = UserAsk.nestPeers.prefix!
+      self.peerPath = UserAsk.pathPeer.prefix!
+      self.catPeer = UserAsk.catPeer.prefix!
+    }
   }
 }
