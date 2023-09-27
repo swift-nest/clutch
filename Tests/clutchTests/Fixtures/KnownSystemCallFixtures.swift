@@ -26,6 +26,7 @@ class KnownSystemCallFixtures {
     let calls: KnownSystemCalls
     var args: ScenarioArgs
     var checks: [Check]
+    var pass = true
     required init(
       scenario: ClutchCommandScenario,
       calls: KnownSystemCalls,
