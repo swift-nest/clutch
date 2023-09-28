@@ -14,9 +14,8 @@ extension ClutchDriver {
         message
       }
       public var message: String {
-        let inputStr = subject.isNotInput ? "" : " \(subject)"
         let hintStr = nil == fixHint ? "" : "\n\(fixHint!)"
-        return "\(agent)(\(ask)) error\(inputStr) \(problem)\(hintStr)"
+        return "\(agent)(\(ask)) error \(subject) \(problem)\(hintStr)"
       }
       public var detail: String {
         let lines = [
@@ -36,36 +35,27 @@ extension ClutchDriver {
     }
 
     public enum Subject: Equatable, CustomStringConvertible {
-      case notInput
       case CLI(String)
       case environmentVariable(PeerNest.EnvName)
       case resource(PeerNest.ResourceKey)
       public var description: String {
         switch self {
-        case .notInput: return name
         case let .CLI(s): return "\(name)(\"\(s)\")"
         case let .environmentVariable(v): return "\(name)(\(v.key))"
         case let .resource(r): return "\(name)(\(r.str))"
         }
-      }
-      var isNotInput: Bool {
-        if case .notInput = self {
-          return true
-        }
-        return false
       }
       var name: String {
         Self.names[index]
       }
       var index: Int {
         switch self {
-        case .notInput: return 0
-        case .CLI(_): return 1
-        case .environmentVariable(_): return 2
-        case .resource(_): return 3
+        case .CLI(_): return 0
+        case .environmentVariable(_): return 1
+        case .resource(_): return 2
         }
       }
-      static let names = ["noInput", "CLI", "EnvVar", "resource"]
+      static let names = ["CLI", "EnvVar", "resource"]
     }
 
     public enum Problem: Equatable {
@@ -112,7 +102,7 @@ extension ClutchDriver {
       required init(
         ask: DriverConfig.UserAsk = .programErr,
         part: Agent = .clutch,
-        subject: Subject = .notInput,
+        subject: Subject = .CLI("init-args"),
         args: [String] = []
       ) {
         self.ask = ask
@@ -174,6 +164,7 @@ extension ClutchDriver {
           problem: problem,
           fixHint: fixHint)
       }
+
       func runAsTaskLocal<T>(_ op: () throws -> T) throws -> T {
         try MakeErr.$local.withValue(self) {
           do {
@@ -183,6 +174,7 @@ extension ClutchDriver {
           }
         }
       }
+
       func runAsyncTaskLocal<T>(_ op: () async throws -> T) async throws -> T {
         try await MakeErr.$local.withValue(self) {
           do {

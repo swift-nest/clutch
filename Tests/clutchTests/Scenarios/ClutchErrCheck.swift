@@ -75,7 +75,6 @@ extension Errors.Subject {
       return EC.expAct(prefix, self, actual)
     }
     switch self {
-    case .notInput: return nil
     case let .CLI(expect):
       guard case let .CLI(act) = actual else {
         preconditionFailure("same index but not CLI")
@@ -95,7 +94,6 @@ extension Errors.Subject {
   }
   var index: Int {
     switch self {
-    case .notInput: return 0
     case .CLI(_): return 1
     case .environmentVariable(_): return 2
     case .resource(_): return 3
