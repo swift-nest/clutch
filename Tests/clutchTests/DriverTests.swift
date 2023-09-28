@@ -161,7 +161,8 @@ final class DriverTests: XCTestCase {
     let recordCalls = RecordSystemCalls(delegate: test.calls, counter: count)
     let cwd = FilePath(".")
     let args = test.args.args
-    let (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: recordCalls)
+    var (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: recordCalls)
+    mode = mode.with(logConfig: recordCalls.seekEnv(.NEST_LOG))
     let driver = ClutchDriver(sysCalls: recordCalls, mode: mode)
 
     var err: (any Error)?
