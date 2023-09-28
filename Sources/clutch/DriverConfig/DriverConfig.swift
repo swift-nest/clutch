@@ -67,7 +67,7 @@ public enum DriverConfig {
     if let homePath = envVar(.HOME),
       let home = seeker.seekDirOrNil(.HOME, homePath)
     {
-      if let rpath = envVar(.NEST_HOME_RPATH) {
+      if let rpath = envVar(.CLUTCH_NEST_RELPATH) {
         baseDirs.append(home.filePath.appending(rpath).string)
       }
       baseDirs.append(home.filePath.appending("git").string)

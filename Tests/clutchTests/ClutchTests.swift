@@ -104,7 +104,7 @@ final class ClutchTests: XCTestCase {
     let toolNest = Self.makeParts((tool, toolName, altNestName, false))
     let rpNestBase = "\(home)/rpath"
     let rpNestPath = "\(rpNestBase)/\(altNestName)"
-    clutchSys.setEnv([.HOME: home, .NEST_HOME_RPATH: "rpath"])
+    clutchSys.setEnv([.HOME: home, .CLUTCH_NEST_RELPATH: "rpath"])
     clutchSys.setDirs([home, rpNestBase, rpNestPath])
     result = try make(toolNest)  // rpath + script-nest
     ea(toolName, result.module)

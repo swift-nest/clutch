@@ -115,7 +115,7 @@ public struct PeerNest {
     /// HOME directory from the environment (if no path or base)
     case HOME
     /// Relative path from HOME for nest base directory (containing nest directories)
-    case NEST_HOME_RPATH
+    case CLUTCH_NEST_RELPATH
     /// Nest logging instructions from the environment
     case CLUTCH_LOG
     /// Nest build instructions (as parsed by ``BuildOptions``)
