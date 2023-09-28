@@ -51,7 +51,7 @@ final class DriverTests: XCTestCase {
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
     }
-    sc.with(checks: [.errPart(.input(.resource(.manifest)))])
+    sc.with(checks: [.errPart(.subject(.resource(.manifest)))])
     await runTest(sc)
   }
 

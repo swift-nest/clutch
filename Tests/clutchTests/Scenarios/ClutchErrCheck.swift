@@ -6,7 +6,7 @@ typealias Problem = ClutchDriver.Problem
 enum ErrPartCheck: Equatable {
   case ask(DriverConfig.UserAsk)
   case agent(Problem.Agent)
-  case input(Problem.BadInput)
+  case subject(Problem.Subject)
   case reason(Problem.ReasonBad)
   case fixHint(String)
   case message(String)
@@ -21,8 +21,8 @@ enum ErrPartCheck: Equatable {
       return Self.checkEqual("ask", expect, actual.ask)
     case let .agent(expect):
       return Self.checkEqual("agent", expect, actual.agent)
-    case .input(let expect):
-      return expect.matchError(actual.input)
+    case .subject(let expect):
+      return expect.matchError(actual.subject)
     case .reason(let expect):
       return expect.matchError(actual.reason)
     case .fixHint(let expect):
@@ -67,7 +67,7 @@ enum ErrPartCheck: Equatable {
 }
 
 
-extension Problem.BadInput {
+extension Problem.Subject {
   private typealias EC = ErrPartCheck
   func matchError(_ actual: Self) -> String? {
     let prefix = "input"
