@@ -12,7 +12,7 @@ public struct ClutchDriver {
   ) -> ClutchDriver {
     let sysCalls = FoundationScriptSystemCalls()
     var mode = logging ?? false ? AskMode.LOG : AskMode.QUIET
-    mode = mode.with(logConfig: sysCalls.seekEnv(.NEST_LOG))
+    mode = mode.with(logConfig: sysCalls.seekEnv(.CLUTCH_LOG))
     return ClutchDriver(sysCalls: sysCalls, mode: mode)
   }
   /// Run clutch nest/script operations implied by input arguments.
@@ -23,7 +23,7 @@ public struct ClutchDriver {
   public static func runMain(cwd: FilePath, args: [String]) async throws {
     let sysCalls = FoundationScriptSystemCalls()
     var (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: sysCalls)
-    mode = mode.with(logConfig: sysCalls.seekEnv(.NEST_LOG))
+    mode = mode.with(logConfig: sysCalls.seekEnv(.CLUTCH_LOG))
     let driver = ClutchDriver(sysCalls: sysCalls, mode: mode)
     try await driver.runAsk(cwd: cwd, args: args, ask: ask)
   }

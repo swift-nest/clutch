@@ -43,7 +43,7 @@ final class DriverTests: XCTestCase {
 
   public func testTraceBuildRun() async throws {
     let sc = fixtures.newScenario(.script(.new))
-    sc.calls.configEnv(.NEST_LOG, "anything")
+    sc.calls.configEnv(.CLUTCH_LOG, "anything")
     let checks: [Check] = ["build", "run"].map {
       .sysCall(.printErr, "TRACE clutch: \($0):")
     }
@@ -247,7 +247,7 @@ final class DriverTests: XCTestCase {
     let cwd = FilePath(".")
     let args = test.args.args
     var (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: recordCalls)
-    mode = mode.with(logConfig: recordCalls.seekEnv(.NEST_LOG))
+    mode = mode.with(logConfig: recordCalls.seekEnv(.CLUTCH_LOG))
     let driver = ClutchDriver(sysCalls: recordCalls, mode: mode)
 
     var err: (any Error)?
