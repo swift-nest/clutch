@@ -7,7 +7,7 @@ enum ErrPartCheck: Equatable {
   case ask(DriverConfig.UserAsk)
   case agent(Errors.Agent)
   case subject(Errors.Subject)
-  case reason(Errors.ReasonBad)
+  case reason(Errors.Problem)
   case fixHint(String)
   case message(String)
   case detail(String)
@@ -103,7 +103,7 @@ extension Errors.Subject {
   }
 }
 
-extension Errors.ReasonBad {
+extension Errors.Problem {
   private typealias EC = ErrPartCheck
   func matchError(_ actual: Self) -> String? {
     var prefix = "input"
