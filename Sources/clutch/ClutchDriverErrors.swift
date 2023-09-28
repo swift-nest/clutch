@@ -7,14 +7,14 @@ extension ClutchDriver {
     public struct ErrParts: Error, CustomStringConvertible {
       public let ask: DriverConfig.UserAsk
       public let agent: Agent
-      public let input: BadInput
+      public let subject: Subject
       public let reason: ReasonBad
       public let fixHint: String?
       public var description: String {
         message
       }
       public var message: String {
-        let inputStr = input.isNotInput ? "" : " \(input)"
+        let inputStr = subject.isNotInput ? "" : " \(subject)"
         let hintStr = nil == fixHint ? "" : "\n\(fixHint!)"
         return "\(agent)(\(ask)) error\(inputStr) \(reason)\(hintStr)"
       }
@@ -23,7 +23,7 @@ extension ClutchDriver {
           "message: \(message)",
           "    ask: \(ask)",
           "  agent: \(agent)",
-          "  input: \(input)",
+          "subject: \(subject)",
           " reason: \(reason)",
           "    fix: \(fixHint ?? "")"
         ]
@@ -35,7 +35,7 @@ extension ClutchDriver {
       case clutch, system, swiftBuild, peerBuild, peerRun
     }
 
-    public enum BadInput: Equatable, CustomStringConvertible {
+    public enum Subject: Equatable, CustomStringConvertible {
       case notInput
       case CLI(String)
       case environmentVariable(PeerNest.EnvName)
@@ -105,26 +105,26 @@ extension ClutchDriver {
       @TaskLocal static var local = ErrBuilder()
       var ask: DriverConfig.UserAsk
       var part: Agent
-      var input: BadInput
+      var subject: Subject
       var args: [String] // TODO: args unused
       init(
         ask: DriverConfig.UserAsk = .programErr,
         part: Agent = .clutch,
-        input: BadInput = .notInput,
+        subject: Subject = .notInput,
         args: [String] = []
       ) {
         self.ask = ask
         self.part = part
-        self.input = input
+        self.subject = subject
         self.args = args
       }
       public func set(
-        input: BadInput? = nil,
+        subject: Subject? = nil,
         part: Agent? = nil,
         ask: DriverConfig.UserAsk? = nil,
         args: [String]? = nil
       ) {
-        self.input = input ?? self.input
+        self.subject = subject ?? self.subject
         self.part = part ?? self.part
         self.ask = ask ?? self.ask
         self.args = args ?? self.args
@@ -132,7 +132,7 @@ extension ClutchDriver {
 
       public func err(
         reason: ReasonBad,
-        input: BadInput? = nil,
+        subject: Subject? = nil,
         part: Agent? = nil,
         ask: DriverConfig.UserAsk? = nil,
         fixHint: String? = nil
@@ -140,13 +140,13 @@ extension ClutchDriver {
         ErrParts(
           ask: ask ?? self.ask,
           agent: part ?? self.part,
-          input: input ?? self.input,
+          subject: subject ?? self.subject,
           reason: reason,
           fixHint: fixHint)
       }
       public func errq(
         _ reason: ReasonBad,
-        _ input: BadInput? = nil,
+        _ subject: Subject? = nil,
         _ part: Agent? = nil,
         _ ask: DriverConfig.UserAsk? = nil,
         fixHint: String? = nil
@@ -154,7 +154,7 @@ extension ClutchDriver {
         ErrParts(
           ask: ask ?? self.ask,
           agent: part ?? self.part,
-          input: input ?? self.input,
+          subject: subject ?? self.subject,
           reason: reason,
           fixHint: fixHint)
       }
