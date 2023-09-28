@@ -67,6 +67,6 @@ extension DriverConfig.UserAskKind {
   }
 
   public var nestNameInput: String? {
-    isNestOnly ? commandNestAsk?.nest.name : peer?.nest
+    isNestOnly ? commandNestAsk?.nest.nest : peer?.nest
   }
 }

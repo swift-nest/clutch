@@ -40,14 +40,14 @@ let package = Package(
       ],
       path: "Sources/clutch-tool"
     ),
-    .executableTarget( // RUN:ClutchAP
-      name: "ClutchAP",
-      dependencies: [
-        .product(name: "Shwift", package: "Shwift"),
-        .product(name: "Script", package: "Shwift"),
-        .target(name: "clutch"),
-      ]
-    ),
+//    .executableTarget( // RUN:ClutchAP
+//      name: "ClutchAP",
+//      dependencies: [
+//        .product(name: "Shwift", package: "Shwift"),
+//        .product(name: "Script", package: "Shwift"),
+//        .target(name: "clutch"),
+//      ]
+//    ),
     .testTarget(
       name: "\(name)Tests",
       dependencies: [

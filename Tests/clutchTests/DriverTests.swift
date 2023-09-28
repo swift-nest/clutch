@@ -5,77 +5,269 @@ import struct SystemPackage.FilePath
 
 @testable import clutchLib
 
+/// Integration test all normal scenarios and some error scenarios and effects.
+///
+/// In most cases, checks are incomplete.
+///
+/// Known-missing tests:
+/// - Script with @main gets peer source name name.swift, not main.swift
+///
+/// Known-missing error tests:
+/// - No listing for peer in manifest without peer-source dir
+/// - Cannot read manifest?
+/// - Cannot update manifest for new peer
+/// - Cannot create file for new peer
+
 final class DriverTests: XCTestCase {
   typealias Scenario = ClutchCommandScenario
   typealias KnownCalls = KnownSystemCalls
-  typealias Check = KnownSystemCallFixtures.ScenarioCheck
+  typealias ScenarioCase = KnownSystemCallFixtures.ScenarioCase
+  typealias Check = KnownSystemCallFixtures.Check
+  typealias SceneCheck = KnownSystemCallFixtures.ScenarioCheck
   typealias CallCheck = RecordSystemCalls.IndexFuncCall
+  typealias ErrParts = ClutchDriver.Errors.ErrParts
+  typealias UserAsk = DriverConfig.UserAsk
 
   let fixtures = KnownSystemCallFixtures()
   let dataToStdout = false
+  let commandPrefixes = CommandPrefixes()
 
   public func testAllScenarios() async throws {
     let cases = Scenario.allCases
     //let cases: [Scenario] = [.nest(.peers)]
     for scenario in cases {
-      let (calls, scenarioArgs, checks) = fixtures.newScenario(scenario)
-      for (error, srcLoc) in calls.internalErrors {
-        XCTFail(error, file: srcLoc.file, line: srcLoc.line)
-      }
-      if calls.internalErrors.isEmpty {
-        let name = scenario.name
-        let args = scenarioArgs.args
-        let recordCalls = try await run(label: name, calls: calls, args: args)
-        check(scenario, calls: recordCalls, checks: checks)
-      }
+      let scenarioCase = fixtures.newScenario(scenario)
+      await runTest(scenarioCase)
     }
   }
 
-  func check(_ test: Scenario, calls: RecordSystemCalls, checks: [Check]) {
+  public func testTraceBuildRun() async throws {
+    let sc = fixtures.newScenario(.script(.new))
+    sc.calls.configEnv(.NEST_LOG, "anything")
+    let checks: [Check] = ["build", "run"].map {
+      .sysCall(.printErr, "TRACE clutch: \($0):")
+    }
+    sc.with(checks: checks)
+    await runTest(sc)
+  }
+
+  public func testErrNestNameBad() async throws {
+    let sc = fixtures.newScenario(.nest(.dir))
+    let prefix = commandPrefixes.nestDir
+    var checks: [Check] = [.errPart(.ask(.syntaxErr))]  // actual is syntax err
+    let unfound = "1BAD_NAME"  // invalid as module name
+    checks += [.errPart(.problem(.badSyntax(unfound)))]
+    sc.with(args: ["\(prefix)\(unfound)"], checks: checks)
+    await runTest(sc)
+  }
+
+  public func testErrNestNotFound() async throws {
+    let sc = fixtures.newScenario(.nest(.dir))
+    let prefix = commandPrefixes.nestDir
+    let unfound = "NOT_FOUND"  // valid as module name, but no such dir
+    sc.with(
+      args: ["\(prefix)\(unfound)"],
+      checks: [  // two ways to check errors
+        .error(unfound),  // any error containing the message
+        .errPart(.problem(.bad(unfound))),  // ErrParts.problem = .bad(match)
+      ]
+    )
+    await runTest(sc)
+  }
+
+  public func testErrPeerRunNoManifestOn() async throws {
+    let sc = fixtures.newScenario(.peer(.run))
+    guard sc.calls.remove(.manifest) else {
+      throw setupFailed("No manifest to remove")
+    }
+    sc.with(checks: [.errPart(.subject(.resource(.manifest)))])
+    await runTest(sc)
+  }
+
+  public func testErrScriptNewNoManifest() async throws {
+    let sc = fixtures.newScenario(.script(.new))
+    guard sc.calls.remove(.manifest) else {
+      throw setupFailed("No manifest to remove")
+    }
+    sc.with(checks: [
+      .errPart(.subject(.resource(.manifest))),
+      .errPart(.problem(.fileNotFound(""))),
+    ])
+    await runTest(sc)
+  }
+
+  public func testErrScriptRunPeerMissing() async throws {
+    let sc = fixtures.newScenario(.script(.uptodate))
+    guard sc.calls.remove(.peer) else {
+      throw setupFailed("No peer to remove")
+    }
+    sc.with(checks: [
+      .errPart(.subject(.resource(.peer))),
+      .errPart(.problem(.fileNotFound(""))),
+    ])
+    await runTest(sc)
+  }
+
+  public func testErrListPeersNoManifest() async throws {
+    let sc = fixtures.newScenario(.nest(.peers))
+    guard sc.calls.remove(.manifest) else {
+      throw setupFailed("No manifest to remove")
+    }
+    sc.with(checks: [
+      .errPart(.subject(.resource(.manifest))),
+      .errPart(.problem(.fileNotFound(""))),
+    ])
+    await runTest(sc)
+  }
+
+  public func testErrPeerCatPeerMissing() async throws {
+    let sc = fixtures.newScenario(.script(.new))
+    sc.with(
+      args: ["\(commandPrefixes.catPeer)script"],  // urk: known value
+      checks: [
+        .errPart(.subject(.resource(.peer))),
+        .errPart(.problem(.fileNotFound("peer script"))),
+      ]
+    )
+    await runTest(sc)
+  }
+
+  public func testErrPeerCatPeerEmpty() async throws {
+    let sc = fixtures.newScenario(.peer(.cat))
+    guard sc.calls.setFileDetails(.peer, content: "//") else {
+      throw setupFailed("Unable to clear peer")
+    }
+    sc.with(
+      checks: [
+        .errPart(.subject(.resource(.peer))),
+        .errPart(.problem(.invalidFile("peer script"))),
+      ])
+    await runTest(sc)
+  }
+
+  // MARK: Helpers
+  func setupFailed(_ m: String) -> Err {
+    Err.err("Setup failed: \(m)")
+  }
+  func runTest(_ test: ScenarioCase, caller: StaticString = #function) async {
+    guard test.calls.internalErrors.isEmpty else {
+      for (error, srcLoc) in test.calls.internalErrors {
+        XCTFail(error, file: srcLoc.file, line: srcLoc.line)
+      }
+      return
+    }
+    let (recordCalls, err) = await runCheckingErrMismatch(test)
+    checkCalls(test, calls: recordCalls)  // check even for errors
+
+    defer {
+      if dataToStdout || !TestHelper.quiet || !test.pass {
+        // permit missing HOME since that might be tested
+        let home = test.calls.envKeyValue["HOME"] ?? "UNKNOWN HOME"
+        let lines = recordCalls.renderLines(home: home, date: true)
+        let linesJoined = lines.joined(separator: "\n")
+        let prefix = "## \(caller) (\(test.scenario.name)) data"
+        let dump = "\(prefix) - START\n\(linesJoined)\n\(prefix) - END"
+        print(dump)
+      }
+    }
+
+    guard let err = err else {
+      return
+    }
+    guard let errParts = err as? ErrParts else {
+      checkErrorExpected(test, error: "\(err)")
+      return
+    }
+    checkErrPartsExpected(test, errParts: errParts)
+  }
+
+  func checkCalls(_ test: ScenarioCase, calls: RecordSystemCalls) {
     let found = calls.renders
-    func match(_ check: Check, _ callCheck: CallCheck) -> Bool {
+    func match(_ check: SceneCheck, _ callCheck: CallCheck) -> Bool {
       check.call == callCheck.funct
         && callCheck.call.contains(check.match)
     }
-    for check in checks {
+    for check in test.checks.scenarios {
       if nil == found.first(where: { match(check, $0) }) {
         XCTFail("\(test) expected \(check)")
+        fail(&test.pass)
+      }
+    }
+    // already reported extra errors
+  }
+  func checkErrPartsExpected(_ test: ScenarioCase, errParts actual: ErrParts) {
+    for expect in test.checks.errParts {
+      if let errorMessage = expect.check(actual) {
+        XCTFail("\(test) \(errorMessage)")
+        fail(&test.pass)
+      }
+    }
+  }
+  func checkErrorExpected(_ test: ScenarioCase, error: String) {
+    for check in test.checks.errors {
+      if !error.contains(check.match) {
+        XCTFail("\(test)\nexp error: \(check.label)\ngot error: \(error)")
+        fail(&test.pass)
       }
     }
   }
 
-  @discardableResult
-  public func run(
-    label: String,
-    calls: KnownCalls,
-    args: [String]
-  ) async throws -> RecordSystemCalls {
-    let count = Count(next: 100)
-    let recordCalls = RecordSystemCalls(delegate: calls, counter: count)
-    let cwd = FilePath(".")
-    let home = calls.envKeyValue["HOME"] ?? "UNKNOWN HOME"  // ? fail-fast?
-    let (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: recordCalls)
-    let driver = ClutchDriver(sysCalls: recordCalls, mode: mode)
-
-    func finish(_ err: (any Error)?) {
-      let lines = recordCalls.renderLines(home: home, date: true)
-      let linesJoined = lines.joined(separator: "\n")
-      let prefix = "## \(label) data"
-      let dump = "\(prefix) - START\n\(linesJoined)\n\(prefix) - END"
-      if let err = err {
-        XCTFail("[\(label)] \(err)")
-        print(dump)
-      } else if dataToStdout || !TestHelper.quiet {
-        print(dump)
+  func runCheckingErrMismatch(
+    _ test: ScenarioCase
+  ) async -> (RecordSystemCalls, (any Error)?) {
+    let (recordCalls, error) = await runCapturing(test)
+    let expectedErrors = test.checks.filter { $0.isError }
+    let expectError = !expectedErrors.isEmpty
+    let haveError = nil != error
+    if haveError != expectError {
+      if let err = error {
+        XCTFail("[\(test.scenario.name)] \(err)")  // unexpected error
+        fail(&test.pass)
+      } else {
+        for expectedError in expectedErrors {
+          XCTFail("[\(test.scenario.name)] missed error: \(expectedError)")
+          fail(&test.pass)
+        }
       }
     }
+    return (recordCalls, error)
+  }
+
+  func fail(_ pass: inout Bool) {
+    if pass {
+      pass = false
+    }
+  }
+
+  func runCapturing(
+    _ test: ScenarioCase
+  ) async -> (RecordSystemCalls, (any Error)?) {
+    let count = Count(next: 100)
+    let recordCalls = RecordSystemCalls(delegate: test.calls, counter: count)
+    let cwd = FilePath(".")
+    let args = test.args.args
+    var (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: recordCalls)
+    mode = mode.with(logConfig: recordCalls.seekEnv(.NEST_LOG))
+    let driver = ClutchDriver(sysCalls: recordCalls, mode: mode)
+
     var err: (any Error)?
     do {
       try await driver.runAsk(cwd: cwd, args: args, ask: ask)
     } catch {
       err = error
     }
-    finish(err)
-    return recordCalls
+    return (recordCalls, err)
+  }
+  struct CommandPrefixes {
+    let nestDir: String
+    let nestPeers: String
+    let peerPath: String
+    let catPeer: String
+    init() {
+      self.nestDir = UserAsk.nestDir.prefix!
+      self.nestPeers = UserAsk.nestPeers.prefix!
+      self.peerPath = UserAsk.pathPeer.prefix!
+      self.catPeer = UserAsk.catPeer.prefix!
+    }
   }
 }

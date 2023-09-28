@@ -3,7 +3,9 @@ public typealias NestKey = PeerNest.ResourceKey
 public struct PeerNest {
 
   /// Summary of resource accessed
-  public enum ResourceKey: String, FileKey {
+  public enum ResourceKey:
+    String, FileKey, CaseIterable, CustomStringConvertible
+  {
     /// Script source file
     case script
 
@@ -19,7 +21,36 @@ public struct PeerNest {
     case HOME
     case swift
 
+    public var status: FileStatus {
+      switch self {
+      case .script: return .file
+      case .nest: return .dir
+      case .manifest: return .file
+      case .nestSourcesDir: return .dir
+      case .nestBinDir: return .dir
+      case .peer: return .file
+      case .peerSourceDir: return .dir
+      case .executable: return .file
+      case .HOME: return .dir
+      case .swift: return .file
+      }
+    }
+    public var description: String {
+      str
+    }
+
     public var str: String { rawValue }
+
+    public var filenames: [String] {
+      switch self {
+      case .manifest: return ["Package.swift"]
+      case .nestSourcesDir: return ["Sources"]
+      case .nestBinDir: return ["debug", "release"]
+      case .peer: return ["main.swift"]
+      case .swift: return ["swift"]
+      default: return []
+      }
+    }
   }
 
   public struct BuildOptions {
@@ -45,6 +76,9 @@ public struct PeerNest {
     public static func parse(
       _ config: String
     ) -> (debug: Bool, args: [String]) {
+      if config.isEmpty {
+        return (true, Self.DEFAULT.args)
+      }
       let first = config.first!
       if first == "@" {
         let args = config.split(separator: "@").map { String($0) }
@@ -70,7 +104,7 @@ public struct PeerNest {
     }
   }
 
-  enum EnvName: String, CaseIterable {
+  public enum EnvName: String, CaseIterable {
     typealias Source = (PeerNest.EnvName) -> String?
     /// path overrides all others
     case NEST_PATH
@@ -95,19 +129,19 @@ public struct PeerNest {
     var key: String { rawValue }
 
     static func makeErrorContext(
-      _ source: Source,
       withValues: Bool = false,
       prefix: String = "Env[",
-      lead: String = "",
-      infix: String = "",
-      nilValue: String = "",
-      delimiter: String = ", ",
-      suffix: String = "]"
+      lead: String = "\n  ",
+      infix: String = " = ",
+      nilValue: String = "nil",
+      delimiter: String = "",
+      suffix: String = "\n  ]",
+      _ source: Source
     ) -> String {
       var result = prefix
       allCases.forEach {
         let value = withValues ? "\(infix)\(source($0) ?? nilValue)" : ""
-        result += "\(lead)\($0.key)\(value)\(suffix)"
+        result += "\(lead)\($0.key)\(value)\(delimiter)"
       }
       result += suffix
       return result
@@ -132,8 +166,8 @@ public struct PeerNest {
     var description: String {
       errInfo()
     }
-    func errInfo() -> String {
-      EnvName.makeErrorContext { self[$0] }
+    func errInfo(withValues: Bool = false) -> String {
+      EnvName.makeErrorContext(withValues: withValues) { self[$0] }
     }
     func asSource() -> EnvName.Source {
       { self[$0] }
@@ -148,7 +182,7 @@ extension SystemCalls {
 
 extension DriverConfig {
   /// Clutch operations as requested/provoked by user
-  public enum UserAsk: CaseIterable {
+  public enum UserAsk: Equatable, CaseIterable {
     /// Build/run script with peer in nest
     case script  // filepath, ModuleName.forModule
 
@@ -183,7 +217,7 @@ extension DriverConfig {
     public var prefix: String? {
       switch self {
       case .catPeer: return "cat-"
-      case .runPeer: return "run-"
+      case .runPeer: return "run-"  // but unqualified name is run
       case .pathPeer: return "path-"
       case .nestDir: return "dir-"
       case .nestPeers: return "peers-"

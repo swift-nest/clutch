@@ -58,6 +58,7 @@ class KnownSystemCalls {
     Err.err(message)
   }
 }
+
 // MARK: internal error reporting
 extension KnownSystemCalls {
   func internalError(
@@ -192,5 +193,89 @@ extension KnownSystemCalls: SystemCalls {
     if let lastMod = fileLastModified[path] {
       fileLastModified[path] = lastMod + 1.0  // TODO: last-mod increment size
     }
+  }
+}
+// MARK: injecting behavior by modifying state
+extension KnownSystemCalls {
+  @discardableResult
+  func configEnv(_ state: EnvName, _ value: String?) -> String? {
+    let result = envKeyValue[state.key]
+    envKeyValue[state.key] = value
+    return result
+  }
+}
+// MARK: injecting errors by modifying state
+extension KnownSystemCalls {
+  func findPaths(_ matching: PeerNest.ResourceKey) -> [String] {
+    var result = [String]()
+    func matches(_ path: String, filename: String) -> Bool {
+      path.hasSuffix(filename) && fileStatus[path] == matching.status.asBool
+    }
+    for filename in matching.filenames {
+      result += fileStatus.keys.filter { matches($0, filename: filename) }
+    }
+    if matching == .script && result.isEmpty {
+      for name in ["script.swift", "script"] {  // urk: scenario defaults
+        // error: picks out binary, too
+        result += fileStatus.keys.filter { matches($0, filename: name) }
+        if !result.isEmpty {
+          break
+        }
+      }
+    }
+    return result
+  }
+
+  @discardableResult
+  func remove(
+    _ resource: PeerNest.ResourceKey,
+    deleteMany: Bool = false
+  ) -> Bool {
+    let paths = findPaths(resource)
+    if paths.isEmpty || (!deleteMany && paths.count > 1) {
+      return false
+    }
+    for path in paths {
+      if !removeFileOrDir(path: path) {
+        return false
+      }
+    }
+    return true
+  }
+  @discardableResult
+  func setFileDetails(
+    _ resource: PeerNest.ResourceKey,
+    clearAll: Bool = false,
+    content: String? = nil,
+    lastMod: Double? = nil
+  ) -> Bool {
+    let paths = findPaths(resource)
+    if 1 != paths.count {
+      return false
+    }
+    let path = paths[0]
+    if clearAll {
+      fileContent[path] = nil
+      fileLastModified[path] = nil
+    }
+    if let content = content {
+      fileContent[path] = content
+    }
+    if let lastMod = lastMod {
+      fileLastModified[path] = lastMod
+    }
+    return true
+  }
+
+  @discardableResult
+  func removeFileOrDir(path: String) -> Bool {
+    let result =
+      nil != fileStatus[path]
+      || nil != fileLastModified[path]
+      || nil != fileContent[path]
+    fileStatus[path] = nil
+    fileLastModified[path] = nil
+    fileContent[path] = nil
+    return result
   }
 }
