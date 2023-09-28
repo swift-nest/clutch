@@ -22,4 +22,16 @@ final class KnownSystemCallFixturesTests: XCTestCase {
       }
     }
   }
+
+  public func testEnv() async throws {
+    typealias EnvVal = PeerNest.EnvValues
+    let keyName = EnvVal.readAll {
+      $0.key
+    }
+    let errInfo = keyName.errInfo(withValues: true)
+    for next in EnvName.allCases {
+      let match = "\(next) = \(next)"
+      XCTAssertTrue(errInfo.contains(match), "\(match) s: \(errInfo)")
+    }
+  }
 }

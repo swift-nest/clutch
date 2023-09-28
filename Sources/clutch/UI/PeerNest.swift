@@ -128,19 +128,19 @@ public struct PeerNest {
     var key: String { rawValue }
 
     static func makeErrorContext(
-      _ source: Source,
       withValues: Bool = false,
       prefix: String = "Env[",
-      lead: String = "",
-      infix: String = "",
-      nilValue: String = "",
-      delimiter: String = ", ",
-      suffix: String = "]"
+      lead: String = "\n  ",
+      infix: String = " = ",
+      nilValue: String = "nil",
+      delimiter: String = "",
+      suffix: String = "\n  ]",
+      _ source: Source
     ) -> String {
       var result = prefix
       allCases.forEach {
         let value = withValues ? "\(infix)\(source($0) ?? nilValue)" : ""
-        result += "\(lead)\($0.key)\(value)\(suffix)"
+        result += "\(lead)\($0.key)\(value)\(delimiter)"
       }
       result += suffix
       return result
@@ -165,8 +165,8 @@ public struct PeerNest {
     var description: String {
       errInfo()
     }
-    func errInfo() -> String {
-      EnvName.makeErrorContext { self[$0] }
+    func errInfo(withValues: Bool = false) -> String {
+      EnvName.makeErrorContext(withValues: withValues) { self[$0] }
     }
     func asSource() -> EnvName.Source {
       { self[$0] }
