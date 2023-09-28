@@ -42,7 +42,12 @@ final class DriverTests: XCTestCase {
     let sc =  fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
     let unfound = "NOT_FOUND" // valid as module name, but no such dir
-    sc.with(args: ["\(prefix)\(unfound)"], checks: [.error(unfound)])
+    sc.with(
+      args: ["\(prefix)\(unfound)"],
+      checks: [ // two ways to check errors
+        .error(unfound), // any error containing the message
+        .errPart(.problem(.bad(unfound))) // ErrParts.problem = .bad(match)
+      ])
     await runTest(sc)
   }
 
