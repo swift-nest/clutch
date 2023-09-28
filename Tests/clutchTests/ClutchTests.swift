@@ -113,7 +113,7 @@ final class ClutchTests: XCTestCase {
 
     // nest by path - ignores other features
     let altNest = "\(home)/foo/\(altNestName)"
-    clutchSys.setEnv([.NEST_PATH: altNest], clear: false)
+    clutchSys.setEnv([.CLUTCH_NEST_PATH: altNest], clear: false)
     clutchSys.setDirs([altNest])
     result = try make(script)  // env.nest_path
     ea(altNestName, result.nestName)

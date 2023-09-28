@@ -107,7 +107,7 @@ public struct PeerNest {
   public enum EnvName: String, CaseIterable {
     typealias Source = (PeerNest.EnvName) -> String?
     /// path overrides all others
-    case NEST_PATH
+    case CLUTCH_NEST_PATH
     /// Base directory for nest sub-directory projects
     case NEST_BASE
     /// Nest name from the environment

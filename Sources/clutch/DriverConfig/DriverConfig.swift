@@ -19,14 +19,14 @@ public enum DriverConfig {
       clutchSystem.seekEnv(key)
     }
     // NEST_PATH trumps all
-    if let path = envVar(.NEST_PATH) {
+    if let path = envVar(.CLUTCH_NEST_PATH) {
       let nest = seeker.seekDir(.nest, path)
       if nest.status.isDir,
         let name = nest.filePath.lastComponent?.string,
         !name.isEmpty
       {
         if let scName = nestNameFromScript, !scName.isEmpty {
-          error = "Using \(EnvName.NEST_PATH.key) but script nest is \(scName)"
+          error = "Using \(EnvName.CLUTCH_NEST_PATH.key) but script nest is \(scName)"
           return (nest, name, error)
         }
         return (nest, name, nil)
