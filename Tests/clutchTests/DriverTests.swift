@@ -69,6 +69,30 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
+  public func testErrPeerScriptMissing() async throws {
+    let sc =  fixtures.newScenario(.script(.new))
+    sc.with(
+      args: ["\(commandPrefixes.catPeer)script"], // urk: known value
+      checks: [
+        .errPart(.subject(.resource(.peer))),
+        .errPart(.problem(.fileNotFound("peer script")))
+      ])
+    await runTest(sc)
+  }
+
+  public func testErrPeerScriptEmpty() async throws {
+    let sc =  fixtures.newScenario(.peer(.cat))
+    guard sc.calls.setFileDetails(.peer, content: "//") else {
+      throw setupFailed("Unable to clear peer")
+    }
+    sc.with(
+      checks: [
+        .errPart(.subject(.resource(.peer))),
+        .errPart(.problem(.invalidFile("peer script")))
+      ])
+    await runTest(sc)
+  }
+
   // MARK: Helpers
   func setupFailed(_ m: String) -> Err {
     Err.err("Setup failed: \(m)")
