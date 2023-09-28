@@ -145,6 +145,98 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
+  /// Test each path to a nest name.
+  ///
+  /// Does not test combinations of settings, where priority would matter.
+  public func testFindNest() {
+    let sc = fixtures.newScenario(.nest(.dir))
+    typealias EnvVal = (name: EnvName, value: String)
+    typealias Config = ([EnvVal]) -> Void
+    struct TC {
+      let label: String
+      let input: String?
+      let name: String
+      let path: FilePath
+      let envVals: [EnvVal]
+      init(
+        _ label: String,
+        _ input: String?,
+        _ name: String,
+        p path: FilePath,
+        _ envVals: [EnvVal] = []
+      ) {
+        self.label = label
+        self.input = input
+        self.name = name
+        self.path = path
+        self.envVals = envVals
+      }
+    }
+    let defName = "Nest"
+    let altName = "AltNest"
+    let altHomeRel = "home-alt"
+    let randomName = "random"
+    let home = FilePath(sc.calls.seekEnv(.HOME) ?? "BAD")
+    let homeGit = home.appending("git")
+    let homeGitNest = homeGit.appending(defName)
+    let homeGitAltNest = homeGit.appending(altName)
+    let homeAltRel = home.appending(altHomeRel)
+    let homeAltRelNest = homeAltRel.appending(defName)
+    let homeAltRelAltNest = homeAltRel.appending(altName)
+    let base = FilePath("BASE")
+    let baseNest = base.appending(defName)
+    let baseAltNest = base.appending(altName)
+    let randomPath = FilePath("randomBase").appending(randomName)
+    let tests: [TC] = [
+      // default
+      TC("default", nil, defName, p: homeGitNest),
+      TC("alt-name-input", altName, altName, p: homeGitAltNest),
+      TC("alt-name-env", nil, altName, p: homeGitAltNest,
+         [(.CLUTCH_NEST_NAME, altName)]),
+      TC("full-env-path", nil, randomName, p: randomPath,
+         [(.CLUTCH_NEST_PATH, randomPath.string)]),
+      TC("env-rpath-default", nil, defName, p: homeAltRelNest,
+         [(.CLUTCH_NEST_RELPATH, altHomeRel)]),
+      TC("env-rpath-name-input", altName, altName, p: homeAltRelAltNest,
+         [(.CLUTCH_NEST_RELPATH, altHomeRel)]),
+      TC("env-base-default", nil, defName, p: baseNest,
+         [(.CLUTCH_NEST_BASE, base.string)]),
+      TC("env-base-name-input", altName, altName, p: baseAltNest,
+         [(.CLUTCH_NEST_BASE, base.string)]),
+      TC("env-base-name-env", nil, altName, p: baseAltNest,
+         [
+          (.CLUTCH_NEST_BASE, base.string),
+          (.CLUTCH_NEST_NAME, altName)
+         ]),
+    ]
+    let envDirs: [EnvName] = [.CLUTCH_NEST_BASE, .CLUTCH_NEST_PATH]
+    for test in tests {
+      let next = sc.calls.copyInit()
+      next.setFileDetails(path: test.path.string, status: .dir)
+      for (name, value) in test.envVals {
+        next.envKeyValue[name.key] = value
+        if envDirs.contains(name) {
+          next.setFileDetails(path: value, status: .dir)
+        } else if name == .CLUTCH_NEST_RELPATH {
+          next.setFileDetails(path: homeAltRel.string, status: .dir)
+          let key: EnvName = .CLUTCH_NEST_NAME
+          let relName = test.input ?? next.envKeyValue[key.key] ?? defName
+          let path = homeAltRel.appending(relName)
+          next.setFileDetails(path: path.string, status: .dir)
+        }
+      }
+      let driver = ClutchDriver(sysCalls: next, mode: .QUIET)
+      let result = try? driver.findNest(inputNestName: test.input)
+      if let result = result {
+        XCTAssertEqual(test.name, result.nestOnly.nest, "name for \(test)")
+        XCTAssertEqual(test.path, result.nestDir, "path for \(test)")
+      } else {
+        _ = try? driver.findNest(inputNestName: test.input)
+        XCTFail("\(test) threw error")
+      }
+    }
+  }
+
   // MARK: Helpers
   func setupFailed(_ m: String) -> Err {
     Err.err("Setup failed: \(m)")
