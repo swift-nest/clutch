@@ -109,7 +109,7 @@ public struct PeerNest {
     /// path overrides all others
     case CLUTCH_NEST_PATH
     /// Base directory for nest sub-directory projects
-    case NEST_BASE
+    case CLUTCH_NEST_BASE
     /// Nest name from the environment
     case CLUTCH_NEST_NAME
     /// HOME directory from the environment (if no path or base)
