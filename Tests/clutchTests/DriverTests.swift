@@ -74,6 +74,18 @@ final class DriverTests: XCTestCase {
     let (recordCalls, err) = await runCheckingErrMismatch(test)
     checkCalls(test,  calls: recordCalls) // check even for errors
 
+    defer {
+      if dataToStdout || !TestHelper.quiet || !test.pass {
+        // permit missing HOME since that might be tested
+        let home = test.calls.envKeyValue["HOME"] ?? "UNKNOWN HOME"
+        let lines = recordCalls.renderLines(home: home, date: true)
+        let linesJoined = lines.joined(separator: "\n")
+        let prefix = "## \(caller) (\(test.scenario.name)) data"
+        let dump = "\(prefix) - START\n\(linesJoined)\n\(prefix) - END"
+        print(dump)
+      }
+    }
+
     guard let err = err else {
       return
     }
@@ -82,15 +94,6 @@ final class DriverTests: XCTestCase {
       return
     }
     checkErrPartsExpected(test, errParts: errParts)
-    if dataToStdout || !TestHelper.quiet || !test.pass {
-      // permit missing HOME since that might be tested
-      let home = test.calls.envKeyValue["HOME"] ?? "UNKNOWN HOME"
-      let lines = recordCalls.renderLines(home: home, date: true)
-      let linesJoined = lines.joined(separator: "\n")
-      let prefix = "## \(caller) (\(test.scenario.name)) data"
-      let dump = "\(prefix) - START\n\(linesJoined)\n\(prefix) - END"
-      print(dump)
-    }
   }
 
   func checkCalls(_ test: ScenarioCase, calls: RecordSystemCalls) {
