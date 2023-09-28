@@ -10,6 +10,40 @@ final class ClutchTests: XCTestCase {
     file: String, mod: String, nest: String?, swift: Bool
   )
 
+  func testBuildOptionParsing() {
+    typealias Options = PeerNest.BuildOptions
+    struct TC {
+      let input: String
+      let expect: [String]
+      let debug: Bool
+      init(_ ins: String, _ exp: [String], _ debug: Bool = false) {
+        self.input = ins
+        self.expect = exp
+        self.debug = debug
+      }
+    }
+    let debugQuiet = Options.DEFAULT.args
+    let releaseQuiet = ["-c", "release", "--quiet"]
+    let releaseLoud = ["-c", "release"]
+    let releaseVerbose = ["-c", "release", "--verbose"]
+    let tests: [TC] = [
+      TC("", debugQuiet, true),
+      TC("debug", debugQuiet, true),
+      TC("loud debug", ["-c", "debug"], true),
+      TC("release", releaseQuiet),
+      TC("release quiet", releaseQuiet),
+      TC("release loud", releaseLoud),
+      TC("release verbose", releaseVerbose),
+      TC("@1@2", ["1", "2"], true),
+      TC("@1@2@release@", ["1", "2", "release"])
+    ]
+    for test in tests {
+      let actual = Options.parse(test.input)
+      XCTAssertEqual(test.debug, actual.debug, "debug \(test.input)")
+      XCTAssertEqual(test.expect, actual.args, "args \(test.input)")
+    }
+  }
+
   func testScriptParts() throws {
 
     let tests: [(String, PartsTuple)] = [
