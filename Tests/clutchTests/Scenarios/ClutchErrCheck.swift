@@ -24,7 +24,7 @@ enum ErrPartCheck: Equatable {
     case .subject(let expect):
       return expect.matchError(actual.subject)
     case .reason(let expect):
-      return expect.matchError(actual.reason)
+      return expect.matchError(actual.problem)
     case .fixHint(let expect):
       return Self.checkMatch("hint", expect, actual.fixHint)
     case .message(let expect):

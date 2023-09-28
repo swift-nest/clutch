@@ -96,7 +96,7 @@ public struct PeerOp {
       } else {
         let m = "Empty script name for \(script) in \(peerDir)"
         throw MakeErr.local.err(
-          reason: .badSyntax(m),
+          .badSyntax(m),
           subject: .resource(.peerSourceDir)
         )
       }
