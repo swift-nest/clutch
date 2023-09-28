@@ -112,7 +112,6 @@ extension Problem.ReasonBad {
     }
     prefix += ".\(name)"
     switch self {
-    case .notFound: return nil
     case let .bad(expect):
       guard case let .bad(act) = actual else {
         preconditionFailure("same index but not \(prefix): \(actual)")
@@ -150,18 +149,17 @@ extension Problem.ReasonBad {
   }
   var index: Int {
     switch self {
-    case .notFound: return 0
-    case .bad(_): return 1
-    case .badSyntax(_): return 2
-    case .dirNotFound(_): return 3
-    case .fileNotFound(_): return 4
-    case .operationFailed(_): return 5
-    case .programError(_): return 6
+    case .bad(_): return 0
+    case .badSyntax(_): return 1
+    case .dirNotFound(_): return 2
+    case .fileNotFound(_): return 3
+    case .operationFailed(_): return 4
+    case .programError(_): return 5
     }
   }
   static let names = [
-    "notFound", "bad", "badSyntax", "dirNotFound", //
-    "fileNotFound", "operationFailed", "programError"
+    "bad", "badSyntax", "dirNotFound", "fileNotFound", //
+    "operationFailed", "programError"
   ]
 }
 

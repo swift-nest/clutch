@@ -73,7 +73,6 @@ extension ClutchDriver {
       case badSyntax(String)
       case fileNotFound(String)
       case dirNotFound(String)
-      case notFound
       case operationFailed(String)
       case programError(String)
       case bad(String)
@@ -83,7 +82,6 @@ extension ClutchDriver {
         case .badSyntax(_): return "bad syntax\n\(Help.SYNTAX)"
         case .fileNotFound(_): return "file n/a"
         case .dirNotFound(_): return "directory n/a"
-        case .notFound: return "n/a"
         case .operationFailed(_): return "failed"
         case .programError(_): return "program error"
         }
@@ -97,7 +95,6 @@ extension ClutchDriver {
         case .badSyntax(let s): return s
         case .fileNotFound(let s): return s
         case .dirNotFound(let s): return s
-        case .notFound: return ""
         case .operationFailed(let s): return s
         case .programError(let s): return s
         }
