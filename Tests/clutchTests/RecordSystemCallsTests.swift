@@ -127,5 +127,12 @@ final class RecordSystemCallsTests: XCTestCase {
     if !TestHelper.inCI && !TestHelper.quiet {
       print("\(prefix) start\n\(data)\(prefix) end\n")
     }
+
+    // also render lines (poorly verified)
+    let all = recorder.renderLines()
+    let first = all.first!
+    let last = all.last!
+    XCTAssertEqual(first, all.first{ $0.contains("environment") })
+    XCTAssertTrue(last.contains("fileStatus"), last)
   }
 }
