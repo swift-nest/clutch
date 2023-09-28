@@ -8,7 +8,7 @@ extension ClutchDriver {
       public let ask: DriverConfig.UserAsk
       public let agent: Agent
       public let subject: Subject
-      public let reason: Problem
+      public let problem: Problem
       public let fixHint: String?
       public var description: String {
         message
@@ -16,7 +16,7 @@ extension ClutchDriver {
       public var message: String {
         let inputStr = subject.isNotInput ? "" : " \(subject)"
         let hintStr = nil == fixHint ? "" : "\n\(fixHint!)"
-        return "\(agent)(\(ask)) error\(inputStr) \(reason)\(hintStr)"
+        return "\(agent)(\(ask)) error\(inputStr) \(problem)\(hintStr)"
       }
       public var detail: String {
         let lines = [
@@ -24,7 +24,7 @@ extension ClutchDriver {
           "    ask: \(ask)",
           "  agent: \(agent)",
           "subject: \(subject)",
-          " reason: \(reason)",
+          "problem: \(problem)",
           "    fix: \(fixHint ?? "")"
         ]
         return lines.joined(separator: "\n")
@@ -131,7 +131,7 @@ extension ClutchDriver {
       }
 
       public func err(
-        reason: Problem,
+        _ problem: Problem,
         subject: Subject? = nil,
         part: Agent? = nil,
         ask: DriverConfig.UserAsk? = nil,
@@ -141,11 +141,11 @@ extension ClutchDriver {
           ask: ask ?? self.ask,
           agent: part ?? self.part,
           subject: subject ?? self.subject,
-          reason: reason,
+          problem: problem,
           fixHint: fixHint)
       }
       public func errq(
-        _ reason: Problem,
+        _ problem: Problem,
         _ subject: Subject? = nil,
         _ part: Agent? = nil,
         _ ask: DriverConfig.UserAsk? = nil,
@@ -155,7 +155,7 @@ extension ClutchDriver {
           ask: ask ?? self.ask,
           agent: part ?? self.part,
           subject: subject ?? self.subject,
-          reason: reason,
+          problem: problem,
           fixHint: fixHint)
       }
     }
