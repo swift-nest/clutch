@@ -7,7 +7,7 @@ enum ErrPartCheck: Equatable {
   case ask(DriverConfig.UserAsk)
   case agent(Errors.Agent)
   case subject(Errors.Subject)
-  case reason(Errors.Problem)
+  case problem(Errors.Problem)
   case fixHint(String)
   case message(String)
   case detail(String)
@@ -23,7 +23,7 @@ enum ErrPartCheck: Equatable {
       return Self.checkEqual("agent", expect, actual.agent)
     case .subject(let expect):
       return expect.matchError(actual.subject)
-    case .reason(let expect):
+    case .problem(let expect):
       return expect.matchError(actual.problem)
     case .fixHint(let expect):
       return Self.checkMatch("hint", expect, actual.fixHint)

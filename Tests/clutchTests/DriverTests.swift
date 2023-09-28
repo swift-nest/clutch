@@ -33,7 +33,7 @@ final class DriverTests: XCTestCase {
     let prefix = commandPrefixes.nestDir
     var checks: [Check] = [.errPart(.ask(.syntaxErr))] // actual is syntax err
     let unfound = "1BAD_NAME" // invalid as module name
-    checks += [.errPart(.reason(.badSyntax(unfound)))]
+    checks += [.errPart(.problem(.badSyntax(unfound)))]
     sc.with(args: ["\(prefix)\(unfound)"], checks: checks)
     await runTest(sc)
   }
