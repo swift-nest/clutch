@@ -195,7 +195,15 @@ extension KnownSystemCalls: SystemCalls {
     }
   }
 }
-
+// MARK: injecting behavior by modifying state
+extension KnownSystemCalls {
+  @discardableResult
+  func configEnv(_ state: EnvName, _ value: String?) -> String? {
+    let result = envKeyValue[state.key]
+    envKeyValue[state.key] = value
+    return result
+  }
+}
 // MARK: injecting errors by modifying state
 extension KnownSystemCalls {
   func findPaths(_ matching: PeerNest.ResourceKey) -> [String] {
