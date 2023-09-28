@@ -14,7 +14,7 @@ import clutchLib
   }
   public init() {
   }
-  @Argument
+  @Argument(help: .init(Help.argAbstract, discussion: Help.argDiscussion))
   var args: [String] = []
 
   public func run() async throws {
