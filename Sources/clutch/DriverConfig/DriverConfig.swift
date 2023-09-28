@@ -22,8 +22,8 @@ public enum DriverConfig {
     if let path = envVar(.NEST_PATH) {
       let nest = seeker.seekDir(.nest, path)
       if nest.status.isDir,
-         let name = nest.filePath.lastComponent?.string,
-         !name.isEmpty
+        let name = nest.filePath.lastComponent?.string,
+        !name.isEmpty
       {
         if let scName = nestNameFromScript, !scName.isEmpty {
           error = "Using \(EnvName.NEST_PATH.key) but script nest is \(scName)"
@@ -65,7 +65,8 @@ public enum DriverConfig {
       baseDirs.append(rpath)
     }
     if let homePath = envVar(.HOME),
-       let home = seeker.seekDirOrNil(.HOME, homePath) {
+      let home = seeker.seekDirOrNil(.HOME, homePath)
+    {
       if let rpath = envVar(.NEST_HOME_RPATH) {
         baseDirs.append(home.filePath.appending(rpath).string)
       }
@@ -73,7 +74,7 @@ public enum DriverConfig {
     }
     for (i, baseDir) in baseDirs.enumerated() {
       if let result = tryBaseDir(baseDir) {
-        if (0 == i) {
+        if 0 == i {
           return result
         }
         let dirErr = "Found nest after trying base dirs \(baseDirs[0..<i])"

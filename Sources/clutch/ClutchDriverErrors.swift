@@ -1,4 +1,3 @@
-
 extension ClutchDriver {
   /// Parameterized errors
   public enum Errors {
@@ -24,7 +23,7 @@ extension ClutchDriver {
           "  agent: \(agent)",
           "subject: \(subject)",
           "problem: \(problem)",
-          "    fix: \(fixHint ?? "")"
+          "    fix: \(fixHint ?? "")",
         ]
         return lines.joined(separator: "\n")
       }
@@ -95,13 +94,13 @@ extension ClutchDriver {
         }
       }
     }
-    
+
     class ErrBuilder {
       @TaskLocal static var local = ErrBuilder()
       var ask: DriverConfig.UserAsk
       var part: Agent
       var subject: Subject
-      var args: [String] // TODO: args unused
+      var args: [String]  // TODO: args unused
       required init(
         ask: DriverConfig.UserAsk = .programErr,
         part: Agent = .clutch,
@@ -151,7 +150,8 @@ extension ClutchDriver {
           agent: part ?? self.part,
           subject: subject ?? self.subject,
           problem: problem,
-          fixHint: fixHint)
+          fixHint: fixHint
+        )
       }
       public func errq(
         _ problem: Problem,
@@ -165,7 +165,8 @@ extension ClutchDriver {
           agent: part ?? self.part,
           subject: subject ?? self.subject,
           problem: problem,
-          fixHint: fixHint)
+          fixHint: fixHint
+        )
       }
 
       func runAsTaskLocal<T>(_ op: () throws -> T) throws -> T {

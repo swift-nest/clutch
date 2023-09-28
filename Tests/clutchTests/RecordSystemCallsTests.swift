@@ -132,7 +132,7 @@ final class RecordSystemCallsTests: XCTestCase {
     let all = recorder.renderLines()
     let first = all.first!
     let last = all.last!
-    XCTAssertEqual(first, all.first{ $0.contains("environment") })
+    XCTAssertEqual(first, all.first { $0.contains("environment") })
     XCTAssertTrue(last.contains("fileStatus"), last)
   }
 }

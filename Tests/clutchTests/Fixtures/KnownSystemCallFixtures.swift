@@ -20,7 +20,8 @@ class KnownSystemCallFixtures {
         scenario: scenario,
         calls: calls,
         args: args,
-        checks: checks)
+        checks: checks
+      )
     }
     let scenario: ClutchCommandScenario
     let calls: KnownSystemCalls
@@ -31,7 +32,8 @@ class KnownSystemCallFixtures {
       scenario: ClutchCommandScenario,
       calls: KnownSystemCalls,
       args: ScenarioArgs,
-      checks: [Check]) {
+      checks: [Check]
+    ) {
       self.scenario = scenario
       self.calls = calls
       self.args = args
@@ -263,7 +265,7 @@ class KnownSystemCallFixtures {
     var match: String {
       switch self {
       case let .sysCall(call, match): return "\(call)(\"\(match))"
-      case let .errPart(check):  return "\(check)"
+      case let .errPart(check): return "\(check)"
       case let .error(match): return "\"\(match)\""
       }
     }
@@ -273,7 +275,7 @@ class KnownSystemCallFixtures {
     var index: Int {
       switch self {
       case .sysCall: return 0
-      case .errPart:  return -1
+      case .errPart: return -1
       case .error: return -2
       }
     }

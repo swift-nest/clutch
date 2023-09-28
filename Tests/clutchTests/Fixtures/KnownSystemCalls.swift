@@ -215,7 +215,7 @@ extension KnownSystemCalls {
       result += fileStatus.keys.filter { matches($0, filename: filename) }
     }
     if matching == .script && result.isEmpty {
-      for name in ["script.swift", "script"] { // urk: scenario defaults
+      for name in ["script.swift", "script"] {  // urk: scenario defaults
         // error: picks out binary, too
         result += fileStatus.keys.filter { matches($0, filename: name) }
         if !result.isEmpty {
@@ -269,9 +269,10 @@ extension KnownSystemCalls {
 
   @discardableResult
   func removeFileOrDir(path: String) -> Bool {
-    let result = nil != fileStatus[path]
-    || nil != fileLastModified[path]
-    || nil != fileContent[path]
+    let result =
+      nil != fileStatus[path]
+      || nil != fileLastModified[path]
+      || nil != fileContent[path]
     fileStatus[path] = nil
     fileLastModified[path] = nil
     fileContent[path] = nil

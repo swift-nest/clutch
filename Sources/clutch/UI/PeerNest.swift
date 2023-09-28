@@ -3,8 +3,9 @@ public typealias NestKey = PeerNest.ResourceKey
 public struct PeerNest {
 
   /// Summary of resource accessed
-  public enum ResourceKey: 
-    String, FileKey, CaseIterable, CustomStringConvertible {
+  public enum ResourceKey:
+    String, FileKey, CaseIterable, CustomStringConvertible
+  {
     /// Script source file
     case script
 
@@ -37,7 +38,7 @@ public struct PeerNest {
     public var description: String {
       str
     }
-    
+
     public var str: String { rawValue }
 
     public var filenames: [String] {
@@ -216,7 +217,7 @@ extension DriverConfig {
     public var prefix: String? {
       switch self {
       case .catPeer: return "cat-"
-      case .runPeer: return "run-" // but unqualified name is run
+      case .runPeer: return "run-"  // but unqualified name is run
       case .pathPeer: return "path-"
       case .nestDir: return "dir-"
       case .nestPeers: return "peers-"

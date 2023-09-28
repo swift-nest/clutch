@@ -68,10 +68,10 @@ public struct ClutchDriver {
     // ---------- report errors
     if let askNote = ask.errorAskNote {
       switch askNote.ask {
-      case .helpDetail: 
+      case .helpDetail:
         stdout(Help.HELP)
         return
-      case .helpSyntax: 
+      case .helpSyntax:
         stdout(Help.SYNTAX)
         return
       case .syntaxErr:
@@ -114,8 +114,8 @@ public struct ClutchDriver {
       throw programErr("not error or nest-only, but no peer name")
     }
     let psResult = try makePeerNestStatus(nestPaths: nestPaths, peer: peerName)
-    let (peerModule, peerStat, nestStat, options)
-      = psResult.asModulePeerNestOptions
+    let (peerModule, peerStat, nestStat, options) = psResult
+      .asModulePeerNestOptions
     let peerArgs = Array(args[1...])
 
     // ---------- build/run script
@@ -165,7 +165,7 @@ public struct ClutchDriver {
       let stat = peerStat[.peer]
       if stat.status.isFile {
         stdout(stat.fullPath)
-      } // else return negative error code?
+      }  // else return negative error code?
       return
     default:
       throw programErr("Unknown ask: \(ask)")
@@ -277,7 +277,8 @@ public struct ClutchDriver {
     guard let nest = nest, nest.nest.status.isDir else {
       throw MakeErr.local.err(
         .dirNotFound(input ?? ""),
-        subject: .resource(.nest))
+        subject: .resource(.nest)
+      )
     }
     guard let nestModule = ModuleName.make(nest.name, into: .forNest) else {
       let err = "Invalid nest name: \(nest.name)"
@@ -326,7 +327,8 @@ public struct ClutchDriver {
       guard bin.status.isFile else {
         throw makeErr.err(
           .fileNotFound("\(bin)"),
-          subject: .resource(.executable))
+          subject: .resource(.executable)
+        )
       }
     }
 

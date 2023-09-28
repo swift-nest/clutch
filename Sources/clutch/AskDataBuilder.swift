@@ -80,7 +80,8 @@ extension DriverConfig.UserAskKind {
       case .scriptNotFile:
         // when it looks like a file, but is not found
         if first.hasSuffix(".swift") || first.contains("/")
-            || 1 < FilePath(first).components.count {
+          || 1 < FilePath(first).components.count
+        {
           return withMode(syntaxErr(.script, askErr.text))
         }
         break  // otw continue to check for commands

@@ -36,45 +36,47 @@ final class DriverTests: XCTestCase {
     let cases = Scenario.allCases
     //let cases: [Scenario] = [.nest(.peers)]
     for scenario in cases {
-      let scenarioCase =  fixtures.newScenario(scenario)
+      let scenarioCase = fixtures.newScenario(scenario)
       await runTest(scenarioCase)
     }
   }
 
   public func testTraceBuildRun() async throws {
-    let sc =  fixtures.newScenario(.script(.new))
+    let sc = fixtures.newScenario(.script(.new))
     sc.calls.configEnv(.NEST_LOG, "anything")
     let checks: [Check] = ["build", "run"].map {
-      .sysCall(.printErr, "TRACE clutch: \($0):") }
+      .sysCall(.printErr, "TRACE clutch: \($0):")
+    }
     sc.with(checks: checks)
     await runTest(sc)
   }
 
   public func testErrNestNameBad() async throws {
-    let sc =  fixtures.newScenario(.nest(.dir))
+    let sc = fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
-    var checks: [Check] = [.errPart(.ask(.syntaxErr))] // actual is syntax err
-    let unfound = "1BAD_NAME" // invalid as module name
+    var checks: [Check] = [.errPart(.ask(.syntaxErr))]  // actual is syntax err
+    let unfound = "1BAD_NAME"  // invalid as module name
     checks += [.errPart(.problem(.badSyntax(unfound)))]
     sc.with(args: ["\(prefix)\(unfound)"], checks: checks)
     await runTest(sc)
   }
 
   public func testErrNestNotFound() async throws {
-    let sc =  fixtures.newScenario(.nest(.dir))
+    let sc = fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
-    let unfound = "NOT_FOUND" // valid as module name, but no such dir
+    let unfound = "NOT_FOUND"  // valid as module name, but no such dir
     sc.with(
       args: ["\(prefix)\(unfound)"],
-      checks: [ // two ways to check errors
-        .error(unfound), // any error containing the message
-        .errPart(.problem(.bad(unfound))) // ErrParts.problem = .bad(match)
-      ])
+      checks: [  // two ways to check errors
+        .error(unfound),  // any error containing the message
+        .errPart(.problem(.bad(unfound))),  // ErrParts.problem = .bad(match)
+      ]
+    )
     await runTest(sc)
   }
 
   public func testErrPeerRunNoManifestOn() async throws {
-    let sc =  fixtures.newScenario(.peer(.run))
+    let sc = fixtures.newScenario(.peer(.run))
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
     }
@@ -83,7 +85,7 @@ final class DriverTests: XCTestCase {
   }
 
   public func testErrScriptNewNoManifest() async throws {
-    let sc =  fixtures.newScenario(.script(.new))
+    let sc = fixtures.newScenario(.script(.new))
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
     }
@@ -95,7 +97,7 @@ final class DriverTests: XCTestCase {
   }
 
   public func testErrScriptRunPeerMissing() async throws {
-    let sc =  fixtures.newScenario(.script(.uptodate))
+    let sc = fixtures.newScenario(.script(.uptodate))
     guard sc.calls.remove(.peer) else {
       throw setupFailed("No peer to remove")
     }
@@ -107,7 +109,7 @@ final class DriverTests: XCTestCase {
   }
 
   public func testErrListPeersNoManifest() async throws {
-    let sc =  fixtures.newScenario(.nest(.peers))
+    let sc = fixtures.newScenario(.nest(.peers))
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
     }
@@ -119,25 +121,26 @@ final class DriverTests: XCTestCase {
   }
 
   public func testErrPeerCatPeerMissing() async throws {
-    let sc =  fixtures.newScenario(.script(.new))
+    let sc = fixtures.newScenario(.script(.new))
     sc.with(
-      args: ["\(commandPrefixes.catPeer)script"], // urk: known value
+      args: ["\(commandPrefixes.catPeer)script"],  // urk: known value
       checks: [
         .errPart(.subject(.resource(.peer))),
-        .errPart(.problem(.fileNotFound("peer script")))
-      ])
+        .errPart(.problem(.fileNotFound("peer script"))),
+      ]
+    )
     await runTest(sc)
   }
 
   public func testErrPeerCatPeerEmpty() async throws {
-    let sc =  fixtures.newScenario(.peer(.cat))
+    let sc = fixtures.newScenario(.peer(.cat))
     guard sc.calls.setFileDetails(.peer, content: "//") else {
       throw setupFailed("Unable to clear peer")
     }
     sc.with(
       checks: [
         .errPart(.subject(.resource(.peer))),
-        .errPart(.problem(.invalidFile("peer script")))
+        .errPart(.problem(.invalidFile("peer script"))),
       ])
     await runTest(sc)
   }
@@ -154,7 +157,7 @@ final class DriverTests: XCTestCase {
       return
     }
     let (recordCalls, err) = await runCheckingErrMismatch(test)
-    checkCalls(test,  calls: recordCalls) // check even for errors
+    checkCalls(test, calls: recordCalls)  // check even for errors
 
     defer {
       if dataToStdout || !TestHelper.quiet || !test.pass {
@@ -213,12 +216,12 @@ final class DriverTests: XCTestCase {
     _ test: ScenarioCase
   ) async -> (RecordSystemCalls, (any Error)?) {
     let (recordCalls, error) = await runCapturing(test)
-    let expectedErrors = test.checks.filter{ $0.isError }
+    let expectedErrors = test.checks.filter { $0.isError }
     let expectError = !expectedErrors.isEmpty
     let haveError = nil != error
     if haveError != expectError {
       if let err = error {
-        XCTFail("[\(test.scenario.name)] \(err)") // unexpected error
+        XCTFail("[\(test.scenario.name)] \(err)")  // unexpected error
         fail(&test.pass)
       } else {
         for expectedError in expectedErrors {

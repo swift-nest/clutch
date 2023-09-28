@@ -8,7 +8,7 @@ final class KnownSystemCallFixturesTests: XCTestCase {
 
   public func testFindPaths() async throws {
     typealias Key = PeerNest.ResourceKey
-    let sc =  fixtures.newScenario(.script(.uptodate))
+    let sc = fixtures.newScenario(.script(.uptodate))
     let plurals: [Key] = [.swift, .nestBinDir]
     for key in Key.allCases {
       guard !key.filenames.isEmpty else {

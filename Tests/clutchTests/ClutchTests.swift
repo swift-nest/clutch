@@ -35,7 +35,7 @@ final class ClutchTests: XCTestCase {
       TC("release loud", releaseLoud),
       TC("release verbose", releaseVerbose),
       TC("@1@2", ["1", "2"], true),
-      TC("@1@2@release@", ["1", "2", "release"])
+      TC("@1@2@release@", ["1", "2", "release"]),
     ]
     for test in tests {
       let actual = Options.parse(test.input)

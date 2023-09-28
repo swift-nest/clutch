@@ -14,7 +14,6 @@ enum ErrPartCheck: Equatable {
   static let LEAD = "  "
   static let SEP = "\n\(LEAD)"
 
-
   func check(_ actual: Errors.ErrParts) -> String? {
     switch self {
     case let .ask(expect):
@@ -56,7 +55,7 @@ enum ErrPartCheck: Equatable {
     _ act: String?
   ) -> String? {
     if exp.isEmpty {
-      return nil // OK? no details in match, just structure
+      return nil  // OK? no details in match, just structure
     }
     if let act = act, act.contains(exp) {
       return nil
@@ -67,7 +66,7 @@ enum ErrPartCheck: Equatable {
     _ label: String,
     _ exp: T,
     _ act: T?
-    ) -> String {
+  ) -> String {
     let prefix = "\(label)\(Self.SEP)exp: \(exp)\(Self.SEP)act: "
     if let act = act {
       return "\(prefix)\(act)"
@@ -75,7 +74,6 @@ enum ErrPartCheck: Equatable {
     return "\(prefix)n/a"
   }
 }
-
 
 extension Errors.Subject {
   private typealias EC = ErrPartCheck
@@ -180,8 +178,8 @@ extension Errors.Problem {
     }
   }
   static let names = [
-    "bad", "badSyntax", "dirNotFound", "fileNotFound", "invalidFile", //
-    "operationFailed", "programError", "thrown"
+    "bad", "badSyntax", "dirNotFound", "fileNotFound", "invalidFile",  //
+    "operationFailed", "programError", "thrown",
   ]
 }
 
