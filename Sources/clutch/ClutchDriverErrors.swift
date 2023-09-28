@@ -8,7 +8,7 @@ extension ClutchDriver {
       public let ask: DriverConfig.UserAsk
       public let agent: Agent
       public let subject: Subject
-      public let reason: ReasonBad
+      public let reason: Problem
       public let fixHint: String?
       public var description: String {
         message
@@ -69,7 +69,7 @@ extension ClutchDriver {
       static let names = ["noInput", "CLI", "EnvVar", "resource"]
     }
     
-    public enum ReasonBad: Equatable {
+    public enum Problem: Equatable {
       case badSyntax(String)
       case fileNotFound(String)
       case dirNotFound(String)
@@ -131,7 +131,7 @@ extension ClutchDriver {
       }
 
       public func err(
-        reason: ReasonBad,
+        reason: Problem,
         subject: Subject? = nil,
         part: Agent? = nil,
         ask: DriverConfig.UserAsk? = nil,
@@ -145,7 +145,7 @@ extension ClutchDriver {
           fixHint: fixHint)
       }
       public func errq(
-        _ reason: ReasonBad,
+        _ reason: Problem,
         _ subject: Subject? = nil,
         _ part: Agent? = nil,
         _ ask: DriverConfig.UserAsk? = nil,
