@@ -246,7 +246,7 @@ class KnownSystemCallFixtures {
   ) {
     env.internalError(message, file: file, line: line)
   }
-  enum Check: Comparable, CustomStringConvertible {
+  enum Check: Equatable, CustomStringConvertible {
     case sysCall(SystemCallsFunc, String)
     case errPart(ErrPartCheck)
     case error(String)
@@ -278,16 +278,8 @@ class KnownSystemCallFixtures {
       }
     }
 
-    static let NAMES = ["error", "clutchErr", "sysCall"]
+    static let NAMES = ["error", "errPart", "sysCall"]
     static let ERR_COUNT = 2
-
-    // ------- Comparable
-    static func < (lhs: Self, rhs: Self) -> Bool {
-      if lhs.index == rhs.index {
-        return lhs.match < rhs.match
-      }
-      return lhs.index < rhs.index
-    }
   }
   struct ScenarioCheck: CustomStringConvertible {
     static func ck(_ call: SystemCallsFunc, _ match: String) -> Self {
