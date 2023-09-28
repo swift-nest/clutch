@@ -208,12 +208,20 @@ extension KnownSystemCalls {
 extension KnownSystemCalls {
   func findPaths(_ matching: PeerNest.ResourceKey) -> [String] {
     var result = [String]()
-    for match in matching.filenames {
-      result += fileStatus.keys.filter { $0.contains(match) }
+    func matches(_ path: String, filename: String) -> Bool {
+      path.hasSuffix(filename) && fileStatus[path] == matching.status.asBool
     }
-    if matching == .peer && result.isEmpty {
-      // urk magic value, true of multiple peers
-      result += fileStatus.keys.filter { $0.hasSuffix("main.swift") }
+    for filename in matching.filenames {
+      result += fileStatus.keys.filter { matches($0, filename: filename) }
+    }
+    if matching == .script && result.isEmpty {
+      for name in ["script.swift", "script"] { // urk: scenario defaults
+        // error: picks out binary, too
+        result += fileStatus.keys.filter { matches($0, filename: name) }
+        if !result.isEmpty {
+          break
+        }
+      }
     }
     return result
   }
