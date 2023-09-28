@@ -339,7 +339,11 @@ public struct ClutchDriver {
     guard bin.status.isFile else {
       throw makeErr.err(.fileNotFound("\(bin)"))
     }
-    try await sysCalls.runProcess(bin.fullPath, args: args)
+    trace("run: \(bin.fullPath) \(args)")
+    let next = MakeErr.local.setting(part: .peerRun, args: args)
+    try await next.runAsyncTaskLocal {
+      try await sysCalls.runProcess(bin.fullPath, args: args)
+    }
   }
 
   func build(
@@ -348,12 +352,14 @@ public struct ClutchDriver {
     options: PeerNest.BuildOptions,
     swift: NestItem
   ) async throws {
-    //makeErr.set(input: .resource(.peer), part: .swiftBuild)
     let d = nestDir
     var args = ["build", "--package-path", d.string, "--product", "\(product)"]
     args += options.args
-    trace("build: swift \(args)")
-    try await sysCalls.runProcess(swift.fullPath, args: args)
+    let next = MakeErr.local.setting(part: .peerBuild, args: args)
+    trace("build: \(swift.fullPath) \(args)")
+    try await next.runAsyncTaskLocal {
+      try await sysCalls.runProcess(swift.fullPath, args: args)
+    }
   }
 
   func trace(_ m: @autoclosure () -> String) {

@@ -106,11 +106,10 @@ extension Errors.Subject {
 extension Errors.Problem {
   private typealias EC = ErrPartCheck
   func matchError(_ actual: Self) -> String? {
-    var prefix = "input"
     if index != actual.index {
-      return EC.expAct(prefix, self, actual)
+      return EC.expAct("problem", self, actual)
     }
-    prefix += ".\(name)"
+    let prefix = "problem.\(name)"
     switch self {
     case let .bad(expect):
       guard case let .bad(act) = actual else {
@@ -142,6 +141,14 @@ extension Errors.Problem {
         preconditionFailure("same index but not \(prefix): \(actual)")
       }
       return EC.checkMatch(prefix, expect, act)
+    case let .thrown(expect):
+      guard case let .thrown(act) = actual else {
+        preconditionFailure("same index but not \(prefix): \(actual)")
+      }
+      guard expect.canMatch else {
+        preconditionFailure("Expected error used .make(error) : \(expect)")
+      }
+      return expect.matchError(act)
     }
   }
   var name: String {
@@ -155,11 +162,42 @@ extension Errors.Problem {
     case .fileNotFound(_): return 3
     case .operationFailed(_): return 4
     case .programError(_): return 5
+    case .thrown(_): return 6
     }
   }
   static let names = [
     "bad", "badSyntax", "dirNotFound", "fileNotFound", //
-    "operationFailed", "programError"
+    "operationFailed", "programError", "thrown"
   ]
 }
 
+typealias EquatableError = ClutchDriver.Errors.EquatableError
+extension EquatableError {
+  static func match(_ match: String) -> EquatableError {
+    EquatableError(error: NominalError.nominal, match: match)
+  }
+  var canMatch: Bool {
+    0 < (match?.count ?? 0) && nil != error as? NominalError
+  }
+
+  /// Return nil if non-empty match found in input, or String explaining mismatch.
+  /// - Parameter rhs: ``EquatableError`` to match
+  /// - Returns: nil if matching, or String error otherwise
+  func matchError(_ rhs: EquatableError) -> String? {
+    guard let match = match else {
+      return "Matching from error"
+    }
+    guard canMatch else {
+      return "Empty match"
+    }
+    let actual = "\(rhs.error)"
+    if actual.contains(match) {
+      return nil
+    }
+    return "\(match) not found in \"\(actual)\""
+  }
+  private enum NominalError: Error {
+    case nominal
+  }
+
+}
