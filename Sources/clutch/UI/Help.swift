@@ -49,8 +49,8 @@ public enum Help {
 
     ## Building script peer in the nest
 
-    By default, the build uses `-c debug --quiet` (to avoid delay and noise),
-    and the nest package is named `Nest` and lives at `$HOME/git/Nest`.
+    By default clutch builds using `-c debug --quiet` (to avoid delay and noise),
+    the nest package is named `Nest`, and it lives at `$HOME/git/Nest`.
 
     To configure the nest location or output, set environment variables:
     - `NEST_NAME`: to find the nest in `$HOME/{relative-path}/{nest-name}`

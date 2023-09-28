@@ -57,31 +57,30 @@ package has a nest target (with the nest name) for common code and dependencies.
 
 <details><summary>
 
-### Script: `#!/usr/bin/env clutch`
+### Write script: `#!/usr/bin/env clutch`
 
 </summary>
 
 - The peer name is the initial filename segment (before `.`).
     - The nest name is any trailing segment (ignoring .swift), or `Nest`.
+    - Both the nest and peer name must be valid ASCII identifiers.
 - The file is executable and has a valid hash-bang on the first line:
     - `#!/path/to/clutch`
     - `#!/usr/bin/env clutch` (best, if clutch is on your PATH)
 - The script has valid top-level code, depending only on the nest library.
 
 The nest peer in `{nest}/Sources/{peer}` will be created on first impression.
-The peer file name is `main.swift`, or `{peer}.swift` if it contains `@main`.
+The peer filename is `main.swift`, or `{peer}.swift` if it contains `@main`.
 
-`Package.swift` will be updated with the product and target declarations:
+`Package.swift` will be updated with peer product and target declarations:
 - `.executable(name: "{peer}", targets: [ "{peer}" ]),`
 - `.executableTarget(name: "{peer}", dependencies: ["{nest}"]),` 
-
-By default, the build uses `-c debug --quiet` (to avoid delay and noise).
 
 </details>
 
 <details><summary>
 
-### Nest: `$HOME/git/{nest}/Package.swift`
+### Build in nest: `$HOME/git/{nest}/Package.swift`
 ```
   products: [
     .executable(name: "peer", targets: [ "peer" ]), // for each peer
@@ -95,7 +94,8 @@ By default, the build uses `-c debug --quiet` (to avoid delay and noise).
 ``` 
 </summary>
 
-By default, the nest package is named `Nest` and lives at `$HOME/git/Nest`. 
+By default clutch builds using `-c debug --quiet` (to avoid delay and noise),
+the nest package is named `Nest`, and it lives at `$HOME/git/Nest`. 
 
 To configure the nest location or output, set environment variables:
 - `NEST_NAME`: to find the nest in `$HOME/{relative-path}/{nest-name}`
@@ -105,8 +105,6 @@ To configure the nest location or output, set environment variables:
 - `NEST_BUILD`: `@..` for `@`-delimited args, or `release`, `loud`, `verbose`
 
 The nest directory name must be the name of the library module.
-
-Both the nest and peer name must be valid ASCII identifiers (for now).
 
 For sample nest packages, see [nests](nests).
 
