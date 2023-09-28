@@ -28,6 +28,9 @@ public struct FileItem<Key: FileKey>: CustomStringConvertible {
 
 public enum FileStatus: CustomStringConvertible {
   case file, dir, NA
+  public var asBool: Bool? {
+    isDir ? true : (isFile ? false : nil)
+  }
   public var isFile: Bool { .file == self }
   public var isDir: Bool { .dir == self }
   public var isNA: Bool { .NA == self }
