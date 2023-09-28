@@ -43,11 +43,21 @@ enum ErrPartCheck: Equatable {
     }
     return Self.expAct(label, exp, act)
   }
+  /// Check that match text is in actual result, returning non-empty error otherwise
+  ///
+  /// - Parameters:
+  ///   - label: String prefix used to make error
+  ///   - exp: String match to expect in actual (return nil if empty)
+  ///   - act: Optional String actual text to search for match (return nil if expected but empty)
+  /// - Returns: nil if exp is empty or is found in act, or String describing error otherwise
   static func checkMatch(
     _ label: String,
     _ exp: String,
     _ act: String?
   ) -> String? {
+    if exp.isEmpty {
+      return nil // OK? no details in match, just structure
+    }
     if let act = act, act.contains(exp) {
       return nil
     }
