@@ -150,12 +150,15 @@ public struct ClutchDriver {
       let stat = peerStat[.peer]
       guard stat.status.isFile else {
         let m = "No peer script for \(peerModule): \(stat)"
-        throw makeErr.errq(.fileNotFound(m))
+        throw makeErr.errq(.fileNotFound(m), .resource(.peer))
       }
       let content = try await sysCalls.readFile(stat.fullPath)
       if content.count > 2 {
         let start = content.index(content.startIndex, offsetBy: 2)
         stdout(String(content[start...]))
+      } else {
+        let m = "Empty peer script for \(peerModule): \(stat)"
+        throw makeErr.errq(.invalidFile(m), .resource(.peer))
       }
       return
     case .pathPeer:

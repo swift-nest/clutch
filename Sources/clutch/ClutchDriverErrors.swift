@@ -60,6 +60,7 @@ extension ClutchDriver {
 
     public enum Problem: Equatable {
       case badSyntax(String)
+      case invalidFile(String)
       case fileNotFound(String)
       case dirNotFound(String)
       case operationFailed(String)
@@ -70,6 +71,7 @@ extension ClutchDriver {
         switch self {
         case .bad(_): return ""
         case .badSyntax(_): return "bad syntax\n\(Help.SYNTAX)"
+        case .invalidFile(_): return "file invalid"
         case .fileNotFound(_): return "file n/a"
         case .dirNotFound(_): return "directory n/a"
         case .operationFailed(_): return "failed"
@@ -84,6 +86,7 @@ extension ClutchDriver {
         switch self {
         case .bad(let s): return s
         case .badSyntax(let s): return s
+        case .invalidFile(let s): return s
         case .fileNotFound(let s): return s
         case .dirNotFound(let s): return s
         case .operationFailed(let s): return s
