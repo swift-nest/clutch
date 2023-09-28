@@ -3,7 +3,8 @@ public typealias NestKey = PeerNest.ResourceKey
 public struct PeerNest {
 
   /// Summary of resource accessed
-  public enum ResourceKey: String, FileKey, CustomStringConvertible {
+  public enum ResourceKey: 
+    String, FileKey, CaseIterable, CustomStringConvertible {
     /// Script source file
     case script
 
@@ -19,6 +20,20 @@ public struct PeerNest {
     case HOME
     case swift
 
+    public var status: FileStatus {
+      switch self {
+      case .script: return .file
+      case .nest: return .dir
+      case .manifest: return .file
+      case .nestSourcesDir: return .dir
+      case .nestBinDir: return .dir
+      case .peer: return .file
+      case .peerSourceDir: return .dir
+      case .executable: return .file
+      case .HOME: return .dir
+      case .swift: return .file
+      }
+    }
     public var description: String {
       str
     }
@@ -30,6 +45,7 @@ public struct PeerNest {
       case .manifest: return ["Package.swift"]
       case .nestSourcesDir: return ["Sources"]
       case .nestBinDir: return ["debug", "release"]
+      case .peer: return ["main.swift"]
       case .swift: return ["swift"]
       default: return []
       }
@@ -59,6 +75,9 @@ public struct PeerNest {
     public static func parse(
       _ config: String
     ) -> (debug: Bool, args: [String]) {
+      if config.isEmpty {
+        return (true, Self.DEFAULT.args)
+      }
       let first = config.first!
       if first == "@" {
         let args = config.split(separator: "@").map { String($0) }
