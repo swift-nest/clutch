@@ -5,7 +5,7 @@ public enum Help {
     "# \(name) # Run Swift scripts using a common nest package library"
   static let SYNTAX =
     """
-      #!/usr/bin/env/clutch         # First line of script, if clutch on PATH
+      #!/usr/bin/env clutch         # First line of script, if clutch on PATH
       \(name) <scriptfile> <arg>...  # create/build/run script from peer in nest
                                     # filename: name{.ignore}*{.nest}{.swift}
       \(name) <name{.nest}> <arg>... # run peer in nest (from any directory)
@@ -28,42 +28,38 @@ public enum Help {
     Given a Swift script, clutch will create, build, and run a peer in a nest.
 
     The nest is a Swift package directory with executable script products.
-    A new peer product and source file is added for each new script.
+    A peer product declaration and module source are added for each new script.
 
     ## Script
 
     - The peer name is the initial filename segment (before `.`).
         - The nest name is any trailing segment (ignoring .swift), or `Nest`.
+        - Both the nest and peer name must be valid ASCII identifiers.
     - The file is executable and has a valid hash-bang on the first line:
         - `#!/path/to/clutch`
         - `#!/usr/bin/env clutch` (best, if clutch is on your PATH)
     - The script has valid top-level code, depending only on the nest library.
 
-    The nest peer in `{nest}/Sources/{peer}` will be created on first impression.
-    The peer file name is `main.swift`, or `{peer}.swift` if it contains `@main`.
+    The nest peer `{nest}/Sources/{peer}` will be created on first impression.
+    The peer filename is `main.swift`, or `{peer}.swift` if it contains `@main`.
 
-    `Package.swift` will be updated with the product and target declarations:
+    `Package.swift` will be updated with peer product and target declarations:
     - `.executable(name: "{peer}", targets: [ "{peer}" ]),`
     - `.executableTarget(name: "{peer}", dependencies: ["{nest}"]),`
 
-    By default, the build uses `-c debug --quiet` (to avoid delay and noise).
-
     ## Building script peer in the nest
 
-    By default, the nest package is named `Nest` and lives at `$HOME/git/Nest`.
+    By default, the build uses `-c debug --quiet` (to avoid delay and noise),
+    and the nest package is named `Nest` and lives at `$HOME/git/Nest`.
 
     To configure the nest location or output, set environment variables:
     - `NEST_NAME`: to find the nest in `$HOME/{relative-path}/{nest-name}`
     - `NEST_HOME_RPATH`: relative path from HOME (defaults to `git`)
-    - `NEST_PATH`: full path to nest package directory (ignoring other variables)
-    - `NEST_LOG`: any value to log steps to stdout
+    - `NEST_PATH`: full path to nest package directory (ignores other variables)
+    - `NEST_LOG`: any value to log steps to standard error
     - `NEST_BUILD`: `@..` for `@`-delimited args, or `release`, `loud`, `verbose`
 
-    The peer filename is `main.swift`, or `name.swift` if it contains `@main`
-
     The nest directory name must be the name of the library module.
-
-    Both the nest and peer name must be valid ASCII identifiers.
 
     """
   static let GUIDE =
