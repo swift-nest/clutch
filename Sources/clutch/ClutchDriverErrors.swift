@@ -39,7 +39,6 @@ extension ClutchDriver {
       case notInput
       case CLI(String)
       case environmentVariable(PeerNest.EnvName)
-      //case configFile
       case resource(PeerNest.ResourceKey)
       public var description: String {
         switch self {
@@ -68,7 +67,7 @@ extension ClutchDriver {
       }
       static let names = ["noInput", "CLI", "EnvVar", "resource"]
     }
-    
+
     public enum Problem: Equatable {
       case badSyntax(String)
       case fileNotFound(String)
@@ -76,6 +75,7 @@ extension ClutchDriver {
       case operationFailed(String)
       case programError(String)
       case bad(String)
+      case thrown(EquatableError)
       var label: String {
         switch self {
         case .bad(_): return ""
@@ -84,6 +84,7 @@ extension ClutchDriver {
         case .dirNotFound(_): return "directory n/a"
         case .operationFailed(_): return "failed"
         case .programError(_): return "program error"
+        case .thrown(_): return "thrown"
         }
       }
       var message: String {
@@ -97,6 +98,7 @@ extension ClutchDriver {
         case .dirNotFound(let s): return s
         case .operationFailed(let s): return s
         case .programError(let s): return s
+        case .thrown(let s): return "\(s)"
         }
       }
     }
@@ -107,7 +109,7 @@ extension ClutchDriver {
       var part: Agent
       var subject: Subject
       var args: [String] // TODO: args unused
-      init(
+      required init(
         ask: DriverConfig.UserAsk = .programErr,
         part: Agent = .clutch,
         subject: Subject = .notInput,
@@ -128,6 +130,20 @@ extension ClutchDriver {
         self.part = part ?? self.part
         self.ask = ask ?? self.ask
         self.args = args ?? self.args
+      }
+
+      public func setting(
+        subject: Subject? = nil,
+        part: Agent? = nil,
+        ask: DriverConfig.UserAsk? = nil,
+        args: [String]? = nil
+      ) -> Self {
+        Self(
+          ask: ask ?? self.ask,
+          part: part ?? self.part,
+          subject: subject ?? self.subject,
+          args: args ?? self.args
+        )
       }
 
       public func err(
@@ -157,6 +173,46 @@ extension ClutchDriver {
           subject: subject ?? self.subject,
           problem: problem,
           fixHint: fixHint)
+      }
+      func runAsTaskLocal<T>(_ op: () throws -> T) throws -> T {
+        try MakeErr.$local.withValue(self) {
+          do {
+            return try op()
+          } catch {
+            throw MakeErr.local.err(.thrown(.make(error)))
+          }
+        }
+      }
+      func runAsyncTaskLocal<T>(_ op: () async throws -> T) async throws -> T {
+        try await MakeErr.$local.withValue(self) {
+          do {
+            return try await op()
+          } catch {
+            throw MakeErr.local.err(.thrown(.make(error)))
+          }
+        }
+      }
+    }
+
+    /// Box error for transport (by problem) or matching (in tests)
+    public struct EquatableError: Equatable, CustomStringConvertible {
+      public static func make(_ error: Error) -> EquatableError {
+        EquatableError(error: error)
+      }
+      public typealias ME = ClutchDriver.Errors.EquatableError
+      public static func == (lhs: ME, rhs: ME) -> Bool {
+        lhs.description == rhs.description
+      }
+      public let error: Error
+      public let match: String?
+
+      init(error: Error, match: String? = nil) {
+        self.error = error
+        self.match = match
+      }
+
+      public var description: String {
+        match ?? "\(error)"
       }
     }
   }
