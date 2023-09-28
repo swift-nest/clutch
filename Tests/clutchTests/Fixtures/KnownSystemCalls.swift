@@ -211,6 +211,10 @@ extension KnownSystemCalls {
     for match in matching.filenames {
       result += fileStatus.keys.filter { $0.contains(match) }
     }
+    if matching == .peer && result.isEmpty {
+      // urk magic value, true of multiple peers
+      result += fileStatus.keys.filter { $0.hasSuffix("main.swift") }
+    }
     return result
   }
 
@@ -227,6 +231,30 @@ extension KnownSystemCalls {
       if !removeFileOrDir(path: path) {
         return false
       }
+    }
+    return true
+  }
+  @discardableResult
+  func setFileDetails(
+    _ resource: PeerNest.ResourceKey,
+    clearAll: Bool = false,
+    content: String? = nil,
+    lastMod: Double? = nil
+  ) -> Bool {
+    let paths = findPaths(resource)
+    if 1 != paths.count {
+      return false
+    }
+    let path = paths[0]
+    if clearAll {
+      fileContent[path] = nil
+      fileLastModified[path] = nil
+    }
+    if let content = content {
+      fileContent[path] = content
+    }
+    if let lastMod = lastMod {
+      fileLastModified[path] = lastMod
     }
     return true
   }
