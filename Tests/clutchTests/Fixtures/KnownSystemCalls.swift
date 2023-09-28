@@ -57,6 +57,18 @@ class KnownSystemCalls {
   func injectErr(message: String) -> Err {
     Err.err(message)
   }
+  func copyInit() -> KnownSystemCalls {
+    let result = KnownSystemCalls(
+      printMessages: self.printMessages,
+      passBuild: self.passBuild
+    )
+    result.envKeyValue = self.envKeyValue
+    result.fileStatus = self.fileStatus
+    result.fileLastModified = self.fileLastModified
+    result.fileContent = self.fileContent
+    result.executableNamePath = self.executableNamePath
+    return result
+  }
 }
 
 // MARK: internal error reporting
@@ -253,7 +265,22 @@ extension KnownSystemCalls {
     if 1 != paths.count {
       return false
     }
-    let path = paths[0]
+    return setFileDetails(
+      path: paths[0],
+      clearAll: clearAll,
+      content: content,
+      lastMod: lastMod
+    )
+  }
+
+  @discardableResult
+  func setFileDetails(
+    path: String,
+    clearAll: Bool = false,
+    content: String? = nil,
+    lastMod: Double? = nil,
+    status: FileStatus? = nil
+  ) -> Bool {
     if clearAll {
       fileContent[path] = nil
       fileLastModified[path] = nil
@@ -263,6 +290,9 @@ extension KnownSystemCalls {
     }
     if let lastMod = lastMod {
       fileLastModified[path] = lastMod
+    }
+    if let status = status {
+      fileStatus[path] = status.asBool
     }
     return true
   }
