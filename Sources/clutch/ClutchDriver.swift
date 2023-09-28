@@ -382,7 +382,7 @@ public struct ClutchDriver {
       let err = "Need peer/nest, have \(peer)/\(nest.name)"
       throw MakeErr.local.err(.bad(err), subject: .resource(.peer))
     }
-    let options = PeerNest.BuildOptions.make(sysCalls.seekEnv(.NEST_BUILD))
+    let options = PeerNest.BuildOptions.make(sysCalls.seekEnv(.CLUTCH_BUILD))
     guard
       let peerStat = nestPaths.peerStatus(
         using: sysCalls,

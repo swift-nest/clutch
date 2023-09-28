@@ -119,7 +119,7 @@ public struct PeerNest {
     /// Nest logging instructions from the environment
     case CLUTCH_LOG
     /// Nest build instructions (as parsed by ``BuildOptions``)
-    case NEST_BUILD
+    case CLUTCH_BUILD
 
     /// Product declaration in Package.swift goes in next line after this tag
     static let TAG_PRODUCT = "CLUTCH_PRODUCT"
