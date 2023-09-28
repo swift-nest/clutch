@@ -98,11 +98,12 @@ By default clutch builds using `-c debug --quiet` (to avoid delay and noise),
 the nest package is named `Nest`, and it lives at `$HOME/git/Nest`. 
 
 To configure the nest location or output, set environment variables:
-- `NEST_NAME`: to find the nest in `$HOME/{relative-path}/{nest-name}`
-- `NEST_HOME_RPATH`: relative path from HOME (defaults to `git`)
-- `NEST_PATH`: full path to nest package directory (ignoring other variables)
-- `NEST_LOG`: any value to log steps to stdout
-- `NEST_BUILD`: `@..` for `@`-delimited args, or `release`, `loud`, `verbose`
+- `CLUTCH_NEST_NAME`: find nest in `$HOME/{relative-path}/{nest-name}`
+- `CLUTCH_NEST_RELPATH`: relative path from HOME (defaults to `git`)
+- `CLUTCH_NEST_BASE`: find nest in `$CLUTCH_NEST_BASE/{nest-name}` instead
+- `CLUTCH_NEST_PATH`: full path to nest directory (ignoring other variables)
+- `CLUTCH_LOG`: any value to log steps to stdout
+- `CLUTCH_BUILD`: `@{arg0}@{arg1}..`, or `{release} {loud | verbose}`
 
 The nest directory name must be the name of the library module.
 

@@ -101,8 +101,6 @@
     - based on tracking source of peer
 - P3 sysCall tracing when tracing enabled (FFDC)
 - P4 Guide: more needed for junior developers to get started?
-- P4 Nest package seeking alternatives
-    - `NEST_BASE` for parent dir of nests (i.e., not in HOME)
 - P4 Support generating and running scripts by reading input stream
     - If script file does not exist and there is standard input
     - then pipe stdin to the script file before starting

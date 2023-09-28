@@ -55,9 +55,10 @@ public enum Help {
     To configure the nest location or output, set environment variables:
     - `CLUTCH_NEST_NAME`: find nest in `$HOME/{relative-path}/{nest-name}`
     - `CLUTCH_NEST_RELPATH`: relative path from HOME (defaults to `git`)
+    - `CLUTCH_NEST_BASE`: find nest in `$CLUTCH_NEST_BASE/{nest-name}` instead
     - `CLUTCH_NEST_PATH`: full path to nest directory (ignores other variables)
     - `CLUTCH_LOG`: any value to log steps to standard error
-    - `CLUTCH_BUILD`: `@..` for `@`-delimited args, or `release`, `loud`, `verbose`
+    - `CLUTCH_BUILD`: `@{arg0}@{arg1}..`, or `{release} {loud | verbose}`
 
     The nest directory name must be the name of the library module.
 

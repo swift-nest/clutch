@@ -59,7 +59,7 @@ public enum DriverConfig {
       return nil
     }
 
-    // Base directory candidates are NEST_BASE, HOME + (RPATH | git)
+    // Base directory candidates are NEST_BASE, HOME + (RELPATH | git)
     var baseDirs = [String]()
     if let rpath = envVar(.CLUTCH_NEST_BASE) {
       baseDirs.append(rpath)
