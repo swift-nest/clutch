@@ -5,6 +5,19 @@ import struct SystemPackage.FilePath
 
 @testable import clutchLib
 
+/// Integration test all normal scenarios and some error scenarios and effects.
+///
+/// In most cases, checks are incomplete.
+///
+/// Known-missing tests:
+/// - Script with @main gets peer source name name.swift, not main.swift
+///
+/// Known-missing error tests:
+/// - No listing for peer in manifest without peer-source dir
+/// - Cannot read manifest?
+/// - Cannot update manifest for new peer
+/// - Cannot create file for new peer
+
 final class DriverTests: XCTestCase {
   typealias Scenario = ClutchCommandScenario
   typealias KnownCalls = KnownSystemCalls
@@ -60,7 +73,7 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
-  public func testErrNestNoManifest() async throws {
+  public func testErrPeerRunNoManifestOn() async throws {
     let sc =  fixtures.newScenario(.peer(.run))
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
@@ -69,7 +82,43 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
-  public func testErrPeerScriptMissing() async throws {
+  public func testErrScriptNewNoManifest() async throws {
+    let sc =  fixtures.newScenario(.script(.new))
+    guard sc.calls.remove(.manifest) else {
+      throw setupFailed("No manifest to remove")
+    }
+    sc.with(checks: [
+      .errPart(.subject(.resource(.manifest))),
+      .errPart(.problem(.fileNotFound(""))),
+    ])
+    await runTest(sc)
+  }
+
+  public func testErrScriptRunPeerMissing() async throws {
+    let sc =  fixtures.newScenario(.script(.uptodate))
+    guard sc.calls.remove(.peer) else {
+      throw setupFailed("No peer to remove")
+    }
+    sc.with(checks: [
+      .errPart(.subject(.resource(.peer))),
+      .errPart(.problem(.fileNotFound(""))),
+    ])
+    await runTest(sc)
+  }
+
+  public func testErrListPeersNoManifest() async throws {
+    let sc =  fixtures.newScenario(.nest(.peers))
+    guard sc.calls.remove(.manifest) else {
+      throw setupFailed("No manifest to remove")
+    }
+    sc.with(checks: [
+      .errPart(.subject(.resource(.manifest))),
+      .errPart(.problem(.fileNotFound(""))),
+    ])
+    await runTest(sc)
+  }
+
+  public func testErrPeerCatPeerMissing() async throws {
     let sc =  fixtures.newScenario(.script(.new))
     sc.with(
       args: ["\(commandPrefixes.catPeer)script"], // urk: known value
@@ -80,7 +129,7 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
-  public func testErrPeerScriptEmpty() async throws {
+  public func testErrPeerCatPeerEmpty() async throws {
     let sc =  fixtures.newScenario(.peer(.cat))
     guard sc.calls.setFileDetails(.peer, content: "//") else {
       throw setupFailed("Unable to clear peer")
