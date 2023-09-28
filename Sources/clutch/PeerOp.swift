@@ -1,7 +1,7 @@
 import struct SystemPackage.FilePath
 
 public struct PeerOp {
-  typealias MakeErr = ClutchDriver.Problem.ErrBuilder
+  typealias MakeErr = ClutchDriver.Errors.ErrBuilder
   let sysCalls: SystemCalls
   let fileSeeker: FileItemSeeker
   init(

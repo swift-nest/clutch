@@ -38,8 +38,8 @@ public struct ClutchDriver {
     self.peerOp = PeerOp(sysCalls)
   }
 
-  typealias MakeErr = Problem.ErrBuilder
-  typealias ClutchErr = Problem.ErrParts
+  typealias MakeErr = Errors.ErrBuilder
+  typealias ClutchErr = Errors.ErrParts
   /// Run the user's ask using a builder.
   /// - Parameters:
   ///   - cwd: Current directory (for resolving relative paths)

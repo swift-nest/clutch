@@ -12,7 +12,7 @@ final class DriverTests: XCTestCase {
   typealias Check = KnownSystemCallFixtures.Check
   typealias SceneCheck = KnownSystemCallFixtures.ScenarioCheck
   typealias CallCheck = RecordSystemCalls.IndexFuncCall
-  typealias ErrParts = ClutchDriver.Problem.ErrParts
+  typealias ErrParts = ClutchDriver.Errors.ErrParts
   typealias UserAsk = DriverConfig.UserAsk
 
   let fixtures = KnownSystemCallFixtures()

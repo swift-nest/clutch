@@ -1,7 +1,7 @@
 
 extension ClutchDriver {
   /// Parameterized errors
-  public enum Problem {
+  public enum Errors {
     // complicates b/c parts not orthogonal
     // LocalizedError: in Foundation
     public struct ErrParts: Error, CustomStringConvertible {
