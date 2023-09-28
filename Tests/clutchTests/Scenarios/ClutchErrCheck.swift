@@ -129,6 +129,11 @@ extension Errors.Problem {
         preconditionFailure("same index but not \(prefix): \(actual)")
       }
       return EC.checkMatch(prefix, expect, act)
+    case let .invalidFile(expect):
+      guard case let .invalidFile(act) = actual else {
+        preconditionFailure("same index but not \(prefix): \(actual)")
+      }
+      return EC.checkMatch(prefix, expect, act)
     case let .operationFailed(expect):
       guard case let .operationFailed(act) = actual else {
         preconditionFailure("same index but not \(prefix): \(actual)")
@@ -158,13 +163,14 @@ extension Errors.Problem {
     case .badSyntax(_): return 1
     case .dirNotFound(_): return 2
     case .fileNotFound(_): return 3
-    case .operationFailed(_): return 4
-    case .programError(_): return 5
-    case .thrown(_): return 6
+    case .invalidFile(_): return 4
+    case .operationFailed(_): return 5
+    case .programError(_): return 6
+    case .thrown(_): return 7
     }
   }
   static let names = [
-    "bad", "badSyntax", "dirNotFound", "fileNotFound", //
+    "bad", "badSyntax", "dirNotFound", "fileNotFound", "invalidFile", //
     "operationFailed", "programError", "thrown"
   ]
 }
