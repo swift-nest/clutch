@@ -111,7 +111,7 @@ public struct PeerNest {
     /// Base directory for nest sub-directory projects
     case NEST_BASE
     /// Nest name from the environment
-    case NEST_NAME
+    case CLUTCH_NEST_NAME
     /// HOME directory from the environment (if no path or base)
     case HOME
     /// Relative path from HOME for nest base directory (containing nest directories)

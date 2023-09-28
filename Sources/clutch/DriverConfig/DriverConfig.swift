@@ -37,7 +37,7 @@ public enum DriverConfig {
       s.compactMap(Str.emptyToNil)
     }
     // Check candidate names under proposed base directories
-    let names = notEmpty([nestNameFromScript, envVar(.NEST_NAME), "Nest"])
+    let names = notEmpty([nestNameFromScript, envVar(.CLUTCH_NEST_NAME), "Nest"])
 
     func tryBaseDir(_ basePath: String?) -> FoundNest? {
       guard let path = basePath, !path.isEmpty else {
