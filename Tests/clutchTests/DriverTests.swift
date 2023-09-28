@@ -28,6 +28,15 @@ final class DriverTests: XCTestCase {
     }
   }
 
+  public func testTraceBuildRun() async throws {
+    let sc =  fixtures.newScenario(.script(.new))
+    sc.calls.configEnv(.NEST_LOG, "anything")
+    let checks: [Check] = ["build", "run"].map {
+      .sysCall(.printErr, "TRACE clutch: \($0):") }
+    sc.with(checks: checks)
+    await runTest(sc)
+  }
+
   public func testErrNestNameBad() async throws {
     let sc =  fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
