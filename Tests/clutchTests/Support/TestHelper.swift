@@ -32,7 +32,4 @@ enum TestHelper {
   }
 
 }
-enum Either<LHS, RHS> {
-  case lhs(LHS)
-  case rhs(RHS)
-}
+
