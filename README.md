@@ -140,7 +140,7 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
 <details><summary>
 
 ### Limitations (under development)
-- `@main` and `Package.swift` operations can be brittle.
+- For new scripts, `@main` and `Package.swift` operations fail on unexpected input.
 - `swift build` keeps the old executable when updates produce no binary changes.
 - For known bugs and missing features, see [README-clutch](README-clutch.md).
 
@@ -163,9 +163,8 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
 </details>
 
 ## Package Status
-- Tested, but unproven in the wild...
-    - Not tested yet on different variants of `Package.swift`
-- Command set, CLI interface, and configuration could change
+- Tested on macOS/Linux, but unproven in the wild...
+- Command set, CLI interface, and configuration could change.
 
 ## Alternatives and related libraries
 - The `swift` command works fine if no libraries are needed.
