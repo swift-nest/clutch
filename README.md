@@ -176,9 +176,12 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
 - [swift-sh](https://github.com/mxcl/swift-sh) builds and runs using libraries from import comments
 - Try [Swift Argument Parser](https://github.com/apple/swift-argument-parser) to simplify writing CLI's
 - Try [Shwift](https://github.com/GeorgeLyon/Shwift) for async cross-platform scripting
+- To install Swift package command-line tools, consider [Mint](https://github.com/yonaskolb/Mint)
+    - `mint install swift-nest/clutch`
 
 ## Development
-- License: Apache 2.0
 - Please [create an issue](https://github.com/swift-nest/clutch/issues) with any feedback, to help get to 1.0 :)
-- See [README-clutch](README-clutch.md)
+- See [README-clutch](README-clutch.md) for known issues
+- License: [Apache 2.0](LICENSE.txt)
+- Copyright Contributors on their contribution date.  All rights reserved.
 
