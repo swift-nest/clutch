@@ -92,6 +92,8 @@
     - check peer-declaration == source-presence
     - report when peer found in multiple Nest (esp. if using env variable)
     - main goal is to avoid losing any changes
+- P3 logging integration? esp. to segregate clutch from tool, and to monitor
+- P3 exec script executable (test platform variants, streams, exit codes, etc.)
 - P3 sysCall tracing for FFDC (below)
     - record calls, then replay on exception when --verbose-clutch
 - P3 init-name{.Nest}: cat-name plus capture, chmod?
