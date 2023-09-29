@@ -1,7 +1,7 @@
 # Nest for Swift scripts in a clutch
 
 This is an example project with one demo script
-invoked using [clutch](https://github.com/wti/clutch.git).
+invoked using [clutch](https://github.com/swift-nest/clutch.git).
 
 1. Build clutch and install the executable on your PATH.
 2. Move this package to `$HOME/git/Nest`
