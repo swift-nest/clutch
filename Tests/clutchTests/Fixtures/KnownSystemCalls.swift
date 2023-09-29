@@ -86,8 +86,8 @@ extension KnownSystemCalls {
 
 // MARK: set and clear state
 extension KnownSystemCalls {
-  static let IS_DIR = true
-  static let IS_FILE = false
+  static let IS_DIR = FileStatus.dir.asBool
+  static let IS_FILE = FileStatus.file.asBool
   func setEnv(_ kv: [EnvName: String], clear: Bool = false) {
     if clear {
       envKeyValue.removeAll()
