@@ -1,6 +1,6 @@
 public enum Help {
   static let name = "clutch"
-  static let VERSION = "0.5.0"
+  public static let VERSION = "0.5.0"
   static let LABEL =
     "# \(name) # Run Swift scripts using a common nest package library"
   public static let argAbstract

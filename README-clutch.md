@@ -2,10 +2,10 @@
 
 ## UI issues
 - Current {command}-{target} forms are awkward and idiosyncratic, but
-- Unclear how to model in ArgParser: first argument as script, name, or command
-    - and async weirdness integrating with Script?
+- ArgParser support is DRAFT only: untested, UI rough, poorly factored
+    - [ClutchAP/ClutchMain](Sources/ClutchAP/ClutchMain.swift)
 - Global config
-    - Prefer config file? (yuck: want to avoid file-read to run-script?)
+    - Prefer config file? (yuck: want to avoid file-read to just run)
 
 <details>
 <summary>
@@ -22,7 +22,10 @@
 
 ### Automated testing status
 - Some configuration
-- Integration testing using hand-rolled mock for SystemCalls
+- Integration testing using hand-rolled mock for [SystemCalls](Sources/clutch/system/SystemCalls.swift)
+    - [DriverTests.swift](Tests/clutchTests/DriverTests.swift)
+    - mock SystemCalls: [KnownSystemCalls](Tests/clutchTests/Fixtures/KnownSystemCalls.swift)
+    - with [Recorder](Tests/clutchTests/SystemCallsRecorder/RecordSystemCalls.swift)
 
 ### Manual testing variants
 - Only current macOS tested
@@ -63,7 +66,9 @@
 <summary>
 
 ## Planning
-
+- User workaround's
+- Error messages, esp. hints
+- Capture SystemCalls for super-verbose mode of failure feedback?
 </summary>
 
 ### Bugs the user has to work around
@@ -127,35 +132,14 @@
 <summary>
 
 ## Development
+- Copyright headers - not required but conventional...
 
 </summary>
 
 ## Development
 ### Missing dev features
+- urk: copyright headers
 - version (command, help string; update as part of tagging)
 - git practices/policies
-
-### Code issues
-- remove run-peer command - runs without prefix
-
-### ArgParser (AP) variant failing - solve or reject
-- Unclear how AP can model the first arg as a script, name, or command
-- Investigate whether Schwift wrapping is interfering:
-- not running async run()'s if not AsyncParsableCommand
-- but top-level command must be AsyncParsable
-- but ClutchAP extends Script to get Shell support
-- ArgParser happy when ClutchAP extends AsyncParsable
-- but Shell gacks b/c not running the magic underloaded run() async
-
-
-#### Libraries: shwift seems to get it right for Linux et al
-- Using System, NIO
-- Avoiding Foundation
-- Avoiding [tools support core](https://github.com/apple/swift-tools-support-core) as deprecated though from Apple
-    - but see testing InMemoryFileSystem?
-- archive TBD: Apple Data has compression API's, but no zip option?
-    - https://www.hackingwithswift.com/example-code/system/how-to-compress-and-decompress-data
-    - https://github.com/ZipArchive/ZipArchive
-    - https://forums.swift.org/t/task-safe-way-to-write-a-file-asynchronously/54639
 
 </details>

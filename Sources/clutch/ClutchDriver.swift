@@ -53,7 +53,6 @@ public struct ClutchDriver {
   ) async throws {
     let makeErr = MakeErr.local
     makeErr.set(ask: ask.ask, args: args)
-    let fileSeeker = FileItemSeeker(systemCalls: sysCalls)
 
     // emissions from runAsk(..)
     func programErr(_ err: String) -> ClutchErr {
@@ -96,7 +95,7 @@ public struct ClutchDriver {
         stdout("\(status.fullPath)\(suffix)")
         return
       case .nestPeers:
-        let nameItems = try await listPeersInNest(nestStat, fileSeeker)
+        let nameItems = try await listPeersInNest(nestStat)
         let list =
           nameItems
           .map { $0.name }
@@ -180,9 +179,8 @@ public struct ClutchDriver {
   ///   - nestStatus: NestPathsStatus
   ///   - fileSeeker: FileItemSeeker
   /// - Returns: Result of Array of (name, NestItem) tuple for name, peer source dir
-  func listPeersInNest(
-    _ nestStatus: NestPathsStatus,
-    _ fileSeeker: FileItemSeeker
+  public func listPeersInNest(
+    _ nestStatus: NestPathsStatus
   ) async throws -> [(name: String, item: NestItem)] {
     let manifest = nestStatus[.manifest]
     if !manifest.status.isFile {

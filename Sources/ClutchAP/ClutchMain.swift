@@ -5,33 +5,166 @@ import clutchLib
 
 typealias ModuleName = DriverConfig.ModuleName
 
-/// Given script, find or build executable in nest.
+/// Entry point for clutch with CLI in the argument-parser style.
+///
+/// Blocking bugs
+/// - fixed? P1 hang on `Shell` integration
+///     - `: Script` - hang
+///     - `: Script, AsyncParsableCommand` - Script.swift:241: force-unwrap err
+///     -  solution: avoid `mutating` for run
+///
+/// DRAFT:
+/// - commands and help unfinished
+/// - copy/pasta code from ClutchDriver
+/// - untested interface
+/// - unclear motivation - superior interface?
+///     - not defaulting to run-peer on non-file arg
 @main struct ClutchAP: Script, AsyncParsableCommand {
   private typealias Drive = ClutchDriver
   public static var configuration: CommandConfiguration {
     CommandConfiguration(
       commandName: "ClutchAP",
-      usage: "clutch [scriptfile | command]",  // included in help text
+      usage:
+        "clutch [[<scriptfile> | run <peer>] {arg}... | [cat|path] <peer> | [peers|dir] <nest>]",
       discussion:
         """
         Run Swift scripts from a nest package with dependencies.
 
         Create, update, and build a peer in the nest for each script.
         """,
-      version: "0.5.0",
+      version: "\(Help.VERSION)",
       shouldDisplay: true,
       subcommands: [
-        BuildRunScript.self, CatPeer.self, RunPeer.self, EmitNestDir.self,
-        ListNestPeers.self,
+        BuildRunScript.self,  //
+        PeerRun.self, PeerCat.self, PeerPath.self,  //
+        NestDir.self, NestPeers.self,
       ],
       defaultSubcommand: BuildRunScript.self
     )
   }
+  public init() {}
 
-  //  func run() async throws {
-  //    print("\(self)") // huh? should be default
-  //  }
+  public func run() async throws {
+    let builder = ClutchDriver.Errors.ErrBuilder()
+    throw builder.err(.programError("Running root, not default command"))
+  }
 }
+
+// MARK: Nest commands
+extension ClutchAP {
+  struct NestDir: Script {
+    public static var configuration = APHelp.config(
+      "dir",
+      abstract: "Emits path of nest directory to stdout",
+      usage: "dir <Nest>"
+    )
+    @Argument(help: "nest name")
+    var nest: NestModuleName
+
+    func run() throws {
+      let driver = ClutchDriver.make()
+      let nestPaths = try driver.findNest(inputNestName: nest.nest.nest)
+      let nestStat = nestPaths.nestStatus(using: driver.sysCalls)
+      let status = nestStat[.nest]
+      let suffix = status.status.isDir ? "" : " (missing)"
+      driver.sysCalls.printOut("\(status.fullPath)\(suffix)")
+    }
+  }
+
+  struct NestPeers: Script {
+    public static var configuration = APHelp.config(
+      "peers",
+      abstract: "Emit nest peers to stdout",
+      usage: "peers <Nest>"
+    )
+    @Argument(help: "nest name")
+    var nest: NestModuleName
+
+    func run() async throws {
+      let driver = ClutchDriver.make()
+      let nestPaths = try driver.findNest(inputNestName: nest.nest.nest)
+      let nestStat = nestPaths.nestStatus(using: driver.sysCalls)
+      // TODO: P1 hang on Shell integration
+      // `: Script` - hang
+      // `: Script, AsyncParsableCommand` - Script.swift:241: force-unwrap err
+      let nameItems = try await driver.listPeersInNest(nestStat)
+      let list =
+        nameItems
+        .map { $0.name }
+        .sorted()
+        .joined(separator: " ")
+      driver.sysCalls.printOut("\(list)")
+    }
+  }
+}
+
+// MARK: build/run script
+extension ClutchAP {
+
+  /// Default action to run script after building as needed
+  ///
+  struct BuildRunScript: Script {  // Shell works here
+    typealias AskKind = DriverConfig.UserAskKind
+    public static var configuration = APHelp.config(
+      "build/run",
+      abstract: "Run script with args (create, update, and build as needed)",
+      usage: "<script> {arg}..."
+    )
+
+    @Argument(help: "Script path")
+    var script: String
+
+    @Argument(parsing: .captureForPassthrough, help: "script path")
+    var args: [String] = []
+
+    func trace(_ s: String) {
+      print("TRACE: \(s)")
+    }
+    func validate() throws {
+      trace("BRV \(script) \(args)")
+    }
+    func run() async throws {
+      trace("BRS \(script) \(args)")
+      let driver = ClutchDriver.make()
+
+      let scriptItem: NestItem
+      let peer: ModuleName
+      let ask = AskKind.readScript(
+        script: script,
+        cwd: workingDirectory,
+        sysCalls: driver.sysCalls
+      )
+      switch ask {
+      case .failure(let err):
+        throw err
+      case .success(let askKind):
+        guard let askScriptPeer = askKind.scriptAskScriptPeer else {
+          throw Err.err("Program error unwrapping Ask-script-peer")
+        }
+        (_, scriptItem, peer) = askScriptPeer
+      }
+      let nestPaths = try driver.findNest(inputNestName: peer.nest)
+      let peerNestStatus = try driver.makePeerNestStatus(
+        nestPaths: nestPaths,
+        peer: peer
+      )
+      let peerStatus = peerNestStatus.peerStatus
+      let nestStatus = peerNestStatus.nestStatus
+      let options = peerNestStatus.options
+
+      try await driver.runScript(
+        script: scriptItem,
+        peerName: peer,
+        nestStatus: nestStatus,
+        peerStatus: peerStatus,
+        options: options,
+        args: args
+      )
+    }
+  }
+}
+
+// MARK: Peer commands
 extension ClutchAP {
   struct PeerModuleName: ExpressibleByArgument {
     let peer: ModuleName
@@ -52,140 +185,98 @@ extension ClutchAP {
     }
   }
 
-  struct CatPeer: AsyncParsableCommand {
-    public static var configuration = APHelp.config("cat")
-    @Argument(help: "peer name")
-    var peer: PeerModuleName
-
-    mutating func run() {
-      print("\(self)")
-    }
-  }
-
-  /// Default action to run script after building as needed DRAFT
-  ///
-  /// DRAFT fails to run regardless of input, with no decent error; requires arguments
-  struct BuildRunScript: AsyncParsableCommand {
-    typealias AskKind = DriverConfig.UserAskKind
+  struct PeerCat: Script {
     public static var configuration = APHelp.config(
-      "build/run",
-      abstract: "Run script, updating and building in the nest if needed",
-      usage: "<script> <arg>..."
+      "cat",
+      abstract: "Emit peer source to stdout",
+      usage: "cat <peer>{.<nest>}"
     )
 
-    @Argument(help: "script")
-    var script: String
+    @Argument(help: "peer name")
+    var peer: PeerModuleName
 
-    // TODO: P1 forces 1+ arguments
-    // transform does not help?
-    @Argument(help: "script args", transform: { $0 })
-    var args: [String]  // if optional, then not Codable
-
-    func trace(_ s: String) {
-      print(s)
-    }
-    func validate() throws {
-      trace("BRV \(script) \(args)")
-    }
     func run() async throws {
-      let args = ["n/a"]
-      trace("BRS \(script) \(args)")
       let driver = ClutchDriver.make()
-
-      let scriptItem: NestItem
-      let peer: ModuleName
-      let ask = AskKind.readScript(
-        script: script,
-        cwd: workingDirectory,
-        sysCalls: driver.sysCalls
+      let peerModule = peer.peer
+      let nestPaths = try driver.findNest(inputNestName: peerModule.nest)
+      let peerNestStatus = try driver.makePeerNestStatus(
+        nestPaths: nestPaths,
+        peer: peerModule
       )
-      switch ask {
-      case .failure(let err):
-        throw err
-      case .success(let askKind):
-        guard let askScriptPeer = askKind.scriptAskScriptPeer else {
-          throw Err.err("Program error unwrapping Ask-script-peer")
-        }
-        (_, scriptItem, peer) = askScriptPeer
+      let makeErr = ClutchDriver.Errors.ErrBuilder(ask: .catPeer)
+      let stat = peerNestStatus.peerStatus[.peer]
+      guard stat.status.isFile else {
+        let m = "No peer script for \(peerModule): \(stat)"
+        throw makeErr.errq(.fileNotFound(m), .resource(.peer))
       }
-      // (copy-pasta from ClutchDriver)
-      let resNestPaths = driver.findNest(inputNestName: peer.nest)
-      let nestPaths = try APHelp.tryGet(resNestPaths)
-      let psResult = driver.makePeerNestStatus(nestPaths: nestPaths, peer: peer)
-      let (_, peerStat, nestStat, options)  // TODO: prefer updated peer?
-      = try APHelp.tryGet(psResult).asModulePeerNestOptions
-
-      try await driver.runScript(
-        script: scriptItem,
-        peerName: peer,
-        nestStatus: nestStat,
-        peerStatus: peerStat,
-        options: options,
-        args: args
-      )
+      let content = try await driver.sysCalls.readFile(stat.fullPath)
+      if content.count > 2 {
+        let start = content.index(content.startIndex, offsetBy: 2)
+        driver.sysCalls.printOut(String(content[start...]))
+      } else {
+        let m = "Empty peer script for \(peerModule): \(stat)"
+        throw makeErr.errq(.invalidFile(m), .resource(.peer))
+      }
     }
   }
 
-  struct RunPeer: AsyncParsableCommand {
-    public static var configuration = APHelp.config("run")
+  struct PeerPath: Script {
+    public static var configuration = APHelp.config(
+      "path",
+      abstract: "Emit path of peer source to stdout",
+      usage: "path <peer>{.<nest>}"
+    )
+
     @Argument(help: "peer name")
     var peer: PeerModuleName
-    @Argument(help: "args")
-    var args: [String]
 
-    mutating func run() async throws {
+    func run() async throws {
       let driver = ClutchDriver.make()
       let peerMod = peer.peer
-      let resNestPaths = driver.findNest(inputNestName: peerMod.nest)
-      let nestPaths = try APHelp.tryGet(resNestPaths)
-      let psResult = driver.makePeerNestStatus(
+      let nestPaths = try driver.findNest(inputNestName: peerMod.nest)
+      let peerNestStatus = try driver.makePeerNestStatus(
         nestPaths: nestPaths,
         peer: peerMod
       )
-      let (_, peerStat, nestStat, options)  // TODO: prefer updated peer?
-      = try APHelp.tryGet(psResult).asModulePeerNestOptions
-      try await driver.buildRunPeer(
-        peerMod: peerMod,
-        peerSrc: peerStat[.peer],
-        nest: nestStat[.nest],
-        binary: peerStat[.executable],
-        options: options,
-        args: args
-      )
-    }
-  }
-
-  struct EmitNestDir: AsyncParsableCommand {
-    public static var configuration = APHelp.config(
-      "dir",
-      abstract: "Emits path of nest directory to stdout",
-      usage: "dir <Nest>"
-    )
-    @Argument(help: "nest name")
-    var nest: NestModuleName
-
-    mutating func run() throws {
-      let driver = ClutchDriver.make()
-      let resNestPaths = driver.findNest(inputNestName: nest.nest.nest)
-      let nestPaths = try APHelp.tryGet(resNestPaths)
-      let nestStat = nestPaths.nestStatus(using: driver.sysCalls)
-      let status = nestStat[.nest]
-      let suffix = status.status.isDir ? "" : " (missing)"
+      let status = peerNestStatus.peerStatus[.peer]
+      let suffix = status.status.isFile ? "" : " (missing)"
       driver.sysCalls.printOut("\(status.fullPath)\(suffix)")
     }
   }
 
-  struct ListNestPeers: AsyncParsableCommand {
+  struct PeerRun: Script {
     public static var configuration = APHelp.config(
-      "peers",
-      abstract: "Emit nest peers to stdout",
-      usage: "peers <Nest>"
+      "run",
+      abstract: "Run peer with optional args",
+      usage: "run <peer>{.<nest>} {arg}..."
     )
-    @Argument(help: "nest name")
-    var nest: NestModuleName
 
-    mutating func run() {
-      print("\(self)")
+    @Argument(help: "peer name")
+    var peer: PeerModuleName
+
+    @Argument(parsing: .captureForPassthrough, help: "args")
+    var args: [String] = []
+
+    func run() async throws {
+      let driver = ClutchDriver.make()
+      let peerMod = peer.peer
+      let nestPaths = try driver.findNest(inputNestName: peerMod.nest)
+      let peerNestStatus = try driver.makePeerNestStatus(
+        nestPaths: nestPaths,
+        peer: peerMod
+      )
+      let peerStatus = peerNestStatus.peerStatus
+      let nestStatus = peerNestStatus.nestStatus
+      let options = peerNestStatus.options
+      try await driver.buildRunPeer(
+        peerMod: peerMod,
+        peerSrc: peerStatus[.peer],
+        nest: nestStatus[.nest],
+        nestManifest: nestStatus[.manifest],
+        binary: peerStatus[.executable],
+        options: options,
+        args: args
+      )
     }
   }
 }

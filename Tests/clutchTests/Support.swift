@@ -4,7 +4,6 @@ import XCTest
 @testable import clutchLib
 
 enum TestHelper {
-  // true when committed; sometimes false when local
   static let inCI = nil != FoundationScript.environment("CLUTCH_CI")
   static let quiet = true
   typealias SrcLoc = (file: StaticString, line: UInt)

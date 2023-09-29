@@ -95,13 +95,13 @@ extension ClutchDriver {
       }
     }
 
-    class ErrBuilder {
+    public class ErrBuilder {
       @TaskLocal static var local = ErrBuilder()
       var ask: DriverConfig.UserAsk
       var part: Agent
       var subject: Subject
       var args: [String]  // TODO: args unused
-      required init(
+      public required init(
         ask: DriverConfig.UserAsk = .programErr,
         part: Agent = .clutch,
         subject: Subject = .CLI("init-args"),
