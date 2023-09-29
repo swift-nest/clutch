@@ -20,7 +20,7 @@ Assuming `~/git`, PATH has `~/bin` along with `swift` and `git`
 and [nests/simple/Nest](nests/simple/Nest))...
 
 ```
-# Build clutch and put on PATH (for `env`)
+# Build clutch and put on PATH (for `/usr/bin/env`)
 git clone https://github.com/swift-clutch/clutch.git
 cd clutch && swift build 
 cp .build/debug/clutch ~/bin
@@ -31,11 +31,12 @@ cp -rf nests/simple/Nest ~/git/Nest
 cat > hello <<EOF
 #!/usr/bin/env clutch
 
-print("Hello")
+let you = CommandLine.arguments[1...].first ?? "World"
+print("Hello \(you)")
 EOF
 
 chmod +x hello 
-./hello          # builds, runs `~/git/Nest/Sources/hello/main.swift`
+./hello friend    # builds, runs `~/git/Nest/Sources/hello/main.swift`
 
 # Use clutch directly to run or manage peers or nests
 clutch hello      # run by name from anywhere
