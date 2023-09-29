@@ -5,14 +5,17 @@ import Foundation
 import Script
 
 @main struct Main: Script {
+   @Argument(parsing: .captureForPassthrough, help: "Arguments")
+   var args: [String] = []
+
   func run() async throws {
-    report()
+    report(args: args)
     print("Replay each input line to output")
     print("Enter lines, stop with Ctrl-C")
     try await cat(to: Output.standardOutput)
   }
 
-  func report()  {
+  func report(args: [String])  {
     print("# minime")
     print("-        date: \(CommonTime.now)")
     print("-       #file: \(#file)")
@@ -20,5 +23,6 @@ import Script
     print("- binary path: \(Bundle.main.executablePath ?? "n/a")")
     print("- bundle path: \(Bundle.main.bundlePath)")
     print("- bundle  url: \(Bundle.main.bundleURL)")
+    print("-   arguments: \(args)")
   }
 }
