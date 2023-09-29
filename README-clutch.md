@@ -1,17 +1,19 @@
 # Clutch development
 
 ## UI issues
+- Error messages are rough
 - Current {command}-{target} forms are awkward and idiosyncratic, but
 - ArgParser support is DRAFT only: untested, UI rough, poorly factored
     - [ClutchAP/ClutchMain](Sources/ClutchAP/ClutchMain.swift)
-- Global config
-    - Prefer config file? (yuck: want to avoid file-read to just run)
+- Use global config file instead of or in addition to environment variables?
+    - urk: shouldn't need to read file to just run the script binary
 
 <details>
 <summary>
 
 ## Testing
-
+- Tested on macOS and Linux
+- Covers all scenarios and most errors
 </summary>
 
 ### Platforms
@@ -32,33 +34,29 @@
 - See main [Scenarios](Tests/clutchTests/Scenarios/ClutchCommandScenario.swift)
 - See [ClutchMainTests](Tests/clutchTests/ClutchMainTests.swift) for manual integration driver
 
-#### Nest configuration
+#### Nest configuration and clutch modes
 - tracing: env [none, CLUTCH_LOG]
 - nest finding:
     - NEST_PATH: dominates 
     - name: from input, `NEST_NAME`, or 'Nest'
     - base: `NEST_BASE`, `HOME/REL_PATH` or `HOME/git`
     - nest names that are not identifiers should be rejected
+- `CLUTCH_LOG` defined or not
+- `CLUTCH_BUILD` undefined, `@`-delimited, or ~release +/- loud, verbose
 
 #### Script
-- name: 0, 1, n extensions
-- invalid module names: spaces, non-ascii
-- lifecycle: new, update
+- path: absolute or relative (env converts to absolute)
+- name: 1, 2, 3+ segments
+- invalid module names: non-alphanumeric, non-ascii
 - main type: top-level or @main (limitation: only on new)
+- build: release or debug
+- currency: new, up-to-date, bin-stale, peer-stale
+- validity: ok, or compile or run failure
 - verify library dependency
     - new script manifest declarations should track nest library name
-- build: release or debug
 
-#### Brittle
-- `// some @main comment` in a top-level main
-- main style changing from top-level to `@main` on edit
-- Non-compliant Package.swift
-- Error messages not clear or suited for users
-- Test relative paths
-- Polish documentation
-
-#### Modes
-- all errors to stderr
+#### Commands
+- see readme demo
 
 </details>
 
@@ -66,24 +64,34 @@
 <summary>
 
 ## Planning
-- User workaround's
-- Error messages, esp. hints
-- Capture SystemCalls for super-verbose mode of failure feedback?
+- Try to avoid current user workaround's?
+- Improve error feedback
+    - Capture SystemCalls for super-verbose mode of failure feedback?
 </summary>
 
 ### Bugs the user has to work around
 - Touch binary if rebuilt, but same (handle risk of false-positive build) 
+
+#### New script is brittle
+- top-level code with misleading `// @main comment`
+    - workaround: rename peer.swift to main.swift
+- main style changing between top-level and `@main` on edit
+    - workaround: rename manually
+- Non-compliant Package.swift
+    - workaround: integrate manually
+
+#### Error feedback and codes
+- tracing is minimal, just build and run
+- workaround's: TBD
+- Error messages not clear or suited for users
 - `fatal error` added to build failures - by Script gacking?
 - handle build code=!0 errors nicely - currently shwift throwing
     - goal is to pass the same code back, no?
-
-#### Organize user messages 
 - [ErrParts](Sources/clutch/ClutchDriverErrors.swift) needs UI work
     - agent: clutch, swift-build, etc
     - subject: usually missing resource or bad input or env var
     - problem: bug to fix
     - fixHint: need to support more hints
-- tracing is minimal, just build and run
 
 ### Missing user features
 - P2 CI+badging for reliability signal
