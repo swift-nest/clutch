@@ -35,7 +35,7 @@ struct SrcLoc {
   }
 }
 
-/// Assertions use the file+line location and index messages
+// MARK: Assertions use the file+line location and index messages
 extension SrcLoc {
 
   func message(_ label: @autoclosure () -> String) -> String {
@@ -115,6 +115,7 @@ extension SrcLoc {
   }
 }
 
+// MARK: Factories
 extension SrcLoc {
 
   /// Factory for reliable indexing
