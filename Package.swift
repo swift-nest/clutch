@@ -6,9 +6,7 @@ import PackageDescription
 let name = "clutch"
 let package = Package(
   name: name,
-  platforms: [
-    .macOS(.v12) // Tracking Shwift
-  ],
+  platforms: [ .macOS(.v12) ],
   products: [
     .executable(name: name, targets: [name])
   ],
@@ -17,44 +15,25 @@ let package = Package(
       url: "https://github.com/GeorgeLyon/Shwift.git",
       from: Version(stringLiteral: "2.0.1")
     ),
-    .package(
-      url: "https://github.com/apple/swift-atomics.git",
-      from: Version(stringLiteral: "1.1.0")
-    )
   ],
   targets: [
     .target(
       name: "\(name)Lib",
-      dependencies: [
-        .product(name: "Shwift", package: "Shwift"),
-        .product(name: "Script", package: "Shwift"),
-      ],
-      path: "Sources/clutch"
+      dependencies: [ .product(name: "Script", package: "Shwift") ],
+      path: "Sources/\(name)"
     ),
     .executableTarget( // RUN:clutch
       name: name,
-      dependencies: [
-        .product(name: "Shwift", package: "Shwift"),
-        .product(name: "Script", package: "Shwift"),
-        .target(name: "\(name)Lib")
-      ],
-      path: "Sources/clutch-tool"
+      dependencies: [ .target(name: "\(name)Lib") ],
+      path: "Sources/\(name)-tool"
     ),
     .executableTarget(
       name: "ClutchAP",
-      dependencies: [
-        .product(name: "Shwift", package: "Shwift"),
-        .product(name: "Script", package: "Shwift"),
-        .target(name: "\(name)Lib"),
-      ]
+      dependencies: [ .target(name: "\(name)Lib") ]
     ),
     .testTarget(
       name: "\(name)Tests",
-      dependencies: [
-        .target(name: "\(name)Lib"),
-        .target(name: "\(name)"),
-        .product(name: "Atomics", package: "swift-atomics")
-      ]
+      dependencies: [ .target(name: "\(name)Lib") ]
     )
   ]
 )
