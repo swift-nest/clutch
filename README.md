@@ -165,6 +165,9 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
 
 ## Package Status
 - Tested on macOS/Linux, but unproven in the wild...
+    - [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswift-nest%2Fclutch%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/swift-nest/clutch)
+      / [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswift-nest%2Fclutch%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/swift-nest/clutch)
+
 - Command set, CLI interface, and configuration could change.
 
 ## Alternatives and related libraries
