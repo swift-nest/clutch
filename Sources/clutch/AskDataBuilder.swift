@@ -91,7 +91,7 @@ extension DriverConfig.UserAskKind {
     // -------- run-peer without - (i.e., not a command)
     if !first.contains("-") {
       let ask = UserAsk.runPeer
-      if let mn = ModuleName.make(first, into: .forModule) {
+      if let mn = ModuleName.make(first, into: [.nameOnly, .nameNest]) {
         return withMode(.commandPeer(ask, mn))
       }
       return withMode(syntaxErr(ask, "Invalid module name"))
@@ -119,12 +119,12 @@ extension DriverConfig.UserAskKind {
       let start = first.index(first.startIndex, offsetBy: prefx.count)
       let suffix = first[start...]
       if forNest {
-        if let mn = ModuleName.make(suffix, into: .forNest) {
+        if let mn = ModuleName.make(suffix, into: [.nestOnly]) {
           return .commandNest(userAsk, mn)
         }
         return syntaxErr(userAsk, "expected nest, got \(suffix)")
       }
-      if let mn = ModuleName.make(suffix, into: .forModule) {
+      if let mn = ModuleName.make(suffix, into: [.nameOnly, .nameNest]) {
         return .commandPeer(userAsk, mn)
       }
       return syntaxErr(userAsk, "expected module, got \(suffix)")

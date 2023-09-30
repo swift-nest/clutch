@@ -184,7 +184,7 @@ extension DriverConfig {
   /// Clutch operations as requested/provoked by user
   public enum UserAsk: Equatable, CaseIterable {
     /// Build/run script with peer in nest
-    case script  // filepath, ModuleName.forModule
+    case script  // filepath, ModuleName: [.nameOnly, .nameNest])
 
     // ------------------- peer commands
     // commands - must have ModuleName, and get Nest

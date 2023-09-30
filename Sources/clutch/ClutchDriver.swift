@@ -278,7 +278,7 @@ public struct ClutchDriver {
         subject: .resource(.nest)
       )
     }
-    guard let nestModule = ModuleName.make(nest.name, into: .forNest) else {
+    guard let nestModule = ModuleName.make(nest.name, into: [.nestOnly]) else {
       let err = "Invalid nest name: \(nest.name)"
       throw MakeErr.local.err(.bad(err), subject: .resource(.nest))
     }

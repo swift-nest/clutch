@@ -1,8 +1,4 @@
 public typealias ModuleName = DriverConfig.ModuleName
-extension [ModuleName.Kind] {
-  public static let forModule: [ModuleName.Kind] = [.nameOnly, .nameNest]
-  public static let forNest: [ModuleName.Kind] = [.nestOnly]
-}
 
 extension ModuleName {
   typealias Config = DriverConfig

@@ -169,7 +169,8 @@ extension ClutchAP {
   struct PeerModuleName: ExpressibleByArgument {
     let peer: ModuleName
     init?(argument: String) {
-      guard let mn = ModuleName.make(argument, into: .forModule) else {
+      let mn = ModuleName.make(argument, into: [.nameOnly, .nameNest])
+      guard let mn = mn else {
         return nil
       }
       self.peer = mn
@@ -178,7 +179,7 @@ extension ClutchAP {
   struct NestModuleName: ExpressibleByArgument {
     let nest: ModuleName
     init?(argument: String) {
-      guard let mn = ModuleName.make(argument, into: .forNest) else {
+      guard let mn = ModuleName.make(argument, into: [.nestOnly]) else {
         return nil
       }
       self.nest = mn
