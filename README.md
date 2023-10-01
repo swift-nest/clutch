@@ -170,6 +170,8 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
 - Command set, CLI interface, and configuration could change.
 
 ## Alternatives and related libraries
+- [clatch](Sources/clatch/clatch.swift) is clutch done quick, just for scripts.
+    - No commands, no environment-based configuration, no SystemCalls wrapper
 - The `swift` command works fine if no libraries are needed.
     - Use `#!/usr/bin/env swift` at the start of a script file to run directly
     - `swift script.swift` does the same, without the `#!` hash-bang line
