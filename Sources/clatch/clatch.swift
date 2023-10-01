@@ -151,7 +151,7 @@ enum Manifest {
     return out
   }
 }
-/// Peer nest paths and dates, identifying ``Kind`` of operation
+/// Peer nest paths and dates, identifying ``Peer/Stage-swift.enum`` of operation
 struct Peer {
   enum Stage {
     case run, build, update, create, noScript
@@ -190,11 +190,15 @@ struct Peer {
     let binaryPath = nestPath.appending(".build").appending("debug").appending(
       name
     )
-    // name "main" is default, but peer is used if code has @main
-    let sourcePath = sourceDir.appending("main.swift")
     let scriptDate = lastModified(script)
-    let sourceDate = lastModified(sourcePath.string)
     let binaryDate = lastModified(binaryPath.string)
+    // main.swift  or name.swift if n/a (b/c `@main` in code)
+    var sourcePath = sourceDir.appending("main.swift")
+    var sourceDate = lastModified(sourcePath.string)
+    if .zero == sourceDate.timeIntervalSinceReferenceDate {
+      sourcePath = sourceDir.appending("\(name).swift")
+      sourceDate = lastModified(sourcePath.string)
+    }
     return Peer(
       name: name,
       scriptPath: path,
