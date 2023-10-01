@@ -54,10 +54,16 @@ public struct PeerNest {
   }
 
   public struct BuildOptions {
+    // urk: build-time compiler version is not always run-time SPM version
+    #if compiler(>=5.8)
+    private static let QUIET_ARGS = ["--quiet"]
+    #else
+    private static let QUIET_ARGS: [String] = []
+    #endif
     static let DEFAULT = BuildOptions(
       config: "",
       debug: true,
-      args: ["-c", "debug", "--quiet"]
+      args: ["-c", "debug"] + BuildOptions.QUIET_ARGS
     )
     static func make(_ config: String?) -> Self {
       guard let config = config, !config.isEmpty else {
@@ -93,7 +99,7 @@ public struct PeerNest {
       if !debug || !quiet {
         var args = ["-c", debug ? "debug" : "release"]
         if quiet {
-          args.append("--quiet")
+          args += Self.QUIET_ARGS
         } else if verbose {
           args.append("--verbose")
         }
