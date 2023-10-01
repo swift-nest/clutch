@@ -1,5 +1,5 @@
 import Foundation
-import clutch
+import clutchLib
 
 enum Call {
   public static let anyResult = ["result"]

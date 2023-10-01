@@ -1,5 +1,5 @@
 import XCTest
-import clutch
+import clutchLib
 
 import struct SystemPackage.FilePath
 
