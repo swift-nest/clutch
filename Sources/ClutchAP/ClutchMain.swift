@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation  // urk - arg parser is balking on --init
 import Script
-import clutchLib
+@testable import clutchLib
 
 typealias ModuleName = DriverConfig.ModuleName
 
@@ -204,11 +204,12 @@ extension ClutchAP {
         nestPaths: nestPaths,
         peer: peerModule
       )
-      let makeErr = ClutchDriver.Errors.ErrBuilder(ask: .catPeer)
+      typealias Builder = ClutchDriver.Errors.ErrBuilder
+      let makeErr = Builder.local.setting(ask: .catPeer, args: [])
       let stat = peerNestStatus.peerStatus[.peer]
       guard stat.status.isFile else {
         let m = "No peer script for \(peerModule): \(stat)"
-        throw makeErr.errq(.fileNotFound(m), .resource(.peer))
+        throw makeErr.noFile(.peer, path: stat.fullPath, msg: m)
       }
       let content = try await driver.sysCalls.readFile(stat.fullPath)
       if content.count > 2 {
@@ -216,7 +217,7 @@ extension ClutchAP {
         driver.sysCalls.printOut(String(content[start...]))
       } else {
         let m = "Empty peer script for \(peerModule): \(stat)"
-        throw makeErr.errq(.invalidFile(m), .resource(.peer))
+        throw makeErr.errq(.invalidFile(m), .resource(.peer, stat.fullPath))
       }
     }
   }

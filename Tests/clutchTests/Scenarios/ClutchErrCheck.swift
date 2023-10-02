@@ -9,7 +9,7 @@ enum ErrPartCheck: Equatable {
   case subject(Errors.Subject)
   case problem(Errors.Problem)
   case fixHint(String)
-  case message(String)
+  case label(String)
   case detail(String)
   static let LEAD = "  "
   static let SEP = "\n\(LEAD)"
@@ -26,8 +26,8 @@ enum ErrPartCheck: Equatable {
       return expect.matchError(actual.problem)
     case .fixHint(let expect):
       return Self.checkMatch("hint", expect, actual.fixHint)
-    case .message(let expect):
-      return Self.checkMatch("message", expect, actual.message)
+    case .label(let expect):
+      return Self.checkMatch("label", expect, actual.label)
     case .detail(let expect):
       return Self.checkMatch("detail", expect, actual.detail)
     }
@@ -93,18 +93,20 @@ extension Errors.Subject {
         preconditionFailure("same index but not environmentVariable")
       }
       return EC.checkEqual("\(prefix).EnvVar", expect, act)
-    case .resource(let expect):
-      guard case let .resource(act) = actual else {
+    case let .resource(expect, expectStr):
+      guard case let .resource(act, actualStr) = actual else {
         preconditionFailure("same index but not resource")
       }
-      return EC.checkEqual("\(prefix).resource", expect, act)
+      let pre = "\(prefix).resource"
+      return EC.checkEqual(pre, expect, act)
+        ?? EC.checkMatch("\(pre).message", expectStr, actualStr)
     }
   }
   var index: Int {
     switch self {
-    case .CLI(_): return 1
-    case .environmentVariable(_): return 2
-    case .resource(_): return 3
+    case .CLI: return 1
+    case .environmentVariable: return 2
+    case .resource: return 3
     }
   }
 }
@@ -117,11 +119,6 @@ extension Errors.Problem {
     }
     let prefix = "problem.\(name)"
     switch self {
-    case let .bad(expect):
-      guard case let .bad(act) = actual else {
-        preconditionFailure("same index but not \(prefix): \(actual)")
-      }
-      return EC.checkMatch(prefix, expect, act)
     case let .badSyntax(expect):
       guard case let .badSyntax(act) = actual else {
         preconditionFailure("same index but not \(prefix): \(actual)")
@@ -142,8 +139,8 @@ extension Errors.Problem {
         preconditionFailure("same index but not \(prefix): \(actual)")
       }
       return EC.checkMatch(prefix, expect, act)
-    case let .operationFailed(expect):
-      guard case let .operationFailed(act) = actual else {
+    case let .opFailed(expect):
+      guard case let .opFailed(act) = actual else {
         preconditionFailure("same index but not \(prefix): \(actual)")
       }
       return EC.checkMatch(prefix, expect, act)
@@ -167,19 +164,18 @@ extension Errors.Problem {
   }
   var index: Int {
     switch self {
-    case .bad(_): return 0
-    case .badSyntax(_): return 1
-    case .dirNotFound(_): return 2
-    case .fileNotFound(_): return 3
-    case .invalidFile(_): return 4
-    case .operationFailed(_): return 5
+    case .badSyntax(_): return 0
+    case .dirNotFound(_): return 1
+    case .fileNotFound(_): return 2
+    case .invalidFile(_): return 3
+    case .opFailed(_): return 4
+    case .thrown(_): return 5
     case .programError(_): return 6
-    case .thrown(_): return 7
     }
   }
   static let names = [
-    "bad", "badSyntax", "dirNotFound", "fileNotFound", "invalidFile",  //
-    "operationFailed", "programError", "thrown",
+    "badSyntax", "dirNotFound", "fileNotFound", "invalidFile",  //
+    "opFailed", "thrown", "programError", 
   ]
 }
 

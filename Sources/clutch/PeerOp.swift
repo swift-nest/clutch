@@ -19,8 +19,8 @@ public struct PeerOp {
     guard manifest.status.isFile && sourcesDir.status.isDir else {
       return nil
     }
-    let content = try await sysCalls.readFile(manifest.fullPath)
-    guard let names = try await listExecutableProducts(content) else {
+    let content = try await readFile(.manifest, manifest.fullPath)
+    guard let names = listExecutableProducts(content) else {
       return nil
     }
     let dir = sourcesDir.filePath
@@ -35,10 +35,14 @@ public struct PeerOp {
     }
     return result
   }
-
+  
+  /// Extract product names from package manifest content.
+  ///
+  /// - Parameter manifest: String content of Package.swift
+  /// - Returns: space-delimited Array of String product names
   public func listExecutableProducts(
     _ manifest: String
-  ) async throws -> [String]? {
+  ) -> [String]? {
     guard !manifest.isEmpty else {
       return nil
     }
@@ -88,7 +92,8 @@ public struct PeerOp {
     fileSeeker: FileItemSeeker
   ) async throws -> NestItem {
     var code = "//"
-    code += try await sysCalls.readFile(script.string)
+    code += try await readFile(.script, script.string)
+
     var name = "main"
     if code.contains("@main") {
       if let n = peerDir.lastComponent?.string, !n.isEmpty {
@@ -97,26 +102,26 @@ public struct PeerOp {
         let m = "Empty script name for \(script) in \(peerDir)"
         throw MakeErr.local.err(
           .badSyntax(m),
-          subject: .resource(.peerSourceDir)
+          subject: .resource(.peerSourceDir, peerDir.string)
         )
       }
     }
     let filepath = peerDir.appending("\(name).swift").string
-    try await sysCalls.writeFile(path: filepath, content: code)
+    try await writeFile(.peer, filepath, content: code)
     return fileSeeker.seekFile(.peer, filepath)
   }
 
   func updatePeerSource(script: NestItem, peer: NestItem) async throws {
     var code = "//"
-    code += try await sysCalls.readFile(script.fullPath)
-    try await sysCalls.writeFile(path: peer.filePath.string, content: code)
+    code += try await readFile(.script, script.fullPath)
+    try await writeFile(.peer, peer.fullPath, content: code)
   }
 
   /// Add peer to manifest
   /// - Parameters:
   ///   - peer: ModuleName with kind .nameNest (i.e., nest is defined)
   ///   - manifest: FilePath
-  /// - Returns: true when added
+  /// - Returns: true when added, false when manifest content does not have expected features
   func addPeerToManifestFile(
     _ peer: ModuleName,
     manifest: FilePath
@@ -124,7 +129,8 @@ public struct PeerOp {
     if peer.kind != .nameNest {
       return false
     }
-    let code = try await sysCalls.readFile(manifest.string)
+    let path = manifest.string
+    let code = try await readFile(.manifest, path)
     guard
       let newCode = addPeerToPackageCode(
         peerModuleName: peer.name,
@@ -134,8 +140,38 @@ public struct PeerOp {
     else {
       return false
     }
-    try await sysCalls.writeFile(path: manifest.string, content: newCode)
+    try await writeFile(.manifest, path, content: newCode)
     return true
+  }
+
+  func readFile(
+    _ key: PeerNest.ResourceKey,
+    _ path: String,
+    makeErr: MakeErr? = nil
+  ) async throws -> String {
+    let makeErr = makeErr ?? MakeErr.local
+    let next = makeErr.setting(
+      subject: .resource(key, path),
+      agent: .system
+    )
+    return try await next.runAsyncTaskLocal {
+      return try await sysCalls.readFile(path)
+    }
+  }
+  func writeFile(
+    _ key: PeerNest.ResourceKey,
+    _ path: String,
+    content: String,
+    makeErr: MakeErr? = nil
+  ) async throws {
+    let makeErr = makeErr ?? MakeErr.local
+    let next = makeErr.setting(
+      subject: .resource(key, path),
+      agent: .system
+    )
+    try await next.runAsyncTaskLocal {
+      try await sysCalls.writeFile(path: path, content: content)
+    }
   }
 
   func addPeerToPackageCode(

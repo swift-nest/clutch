@@ -4,7 +4,7 @@ public struct PeerNest {
 
   /// Summary of resource accessed
   public enum ResourceKey:
-    String, FileKey, CaseIterable, CustomStringConvertible
+    String, FileKey, CaseIterable, CustomStringConvertible, Sendable
   {
     /// Script source file
     case script
@@ -110,7 +110,7 @@ public struct PeerNest {
     }
   }
 
-  public enum EnvName: String, CaseIterable {
+  public enum EnvName: String, CaseIterable, Sendable {
     typealias Source = (PeerNest.EnvName) -> String?
     /// path overrides all others
     case CLUTCH_NEST_PATH
@@ -188,7 +188,7 @@ extension SystemCalls {
 
 extension DriverConfig {
   /// Clutch operations as requested/provoked by user
-  public enum UserAsk: Equatable, CaseIterable {
+  public enum UserAsk: Equatable, CaseIterable, Sendable {
     /// Build/run script with peer in nest
     case script  // filepath, ModuleName: [.nameOnly, .nameNest])
 

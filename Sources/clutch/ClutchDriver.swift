@@ -149,7 +149,7 @@ public struct ClutchDriver {
       let stat = peerStat[.peer]
       guard stat.status.isFile else {
         let m = "No peer script for \(peerModule): \(stat)"
-        throw makeErr.errq(.fileNotFound(m), .resource(.peer))
+        throw makeErr.noFile(.peer, path: stat.fullPath, msg: m)
       }
       let content = try await sysCalls.readFile(stat.fullPath)
       if content.count > 2 {
@@ -157,7 +157,7 @@ public struct ClutchDriver {
         stdout(String(content[start...]))
       } else {
         let m = "Empty peer script for \(peerModule): \(stat)"
-        throw makeErr.errq(.invalidFile(m), .resource(.peer))
+        throw makeErr.errq(.invalidFile(m), .resource(.peer, stat.fullPath))
       }
       return
     case .pathPeer:
@@ -183,9 +183,9 @@ public struct ClutchDriver {
     _ nestStatus: NestPathsStatus
   ) async throws -> [(name: String, item: NestItem)] {
     let manifest = nestStatus[.manifest]
+    let path = manifest.fullPath
     if !manifest.status.isFile {
-      let m = "\(manifest.fullPath)"
-      throw MakeErr.local.errq(.fileNotFound(m), .resource(.manifest))
+      throw MakeErr.local.noFile(.manifest, path: path)
     }
     guard
       let namePeers = try await peerOp.listPeers(
@@ -193,8 +193,8 @@ public struct ClutchDriver {
         nestStatus[.nestSourcesDir]
       )
     else {
-      let m = "Reading peers in \(manifest.fullPath)"
-      throw MakeErr.local.errq(.operationFailed(m), .resource(.manifest))
+      let mg = "Reading peers in \(path)"
+      throw MakeErr.local.fail(.manifest, path: path, msg: mg)
     }
     return namePeers
   }
@@ -222,16 +222,25 @@ public struct ClutchDriver {
     } else {  // create source and package
       // run checks and throwing preparation before mutating operations
       let manifest = nestStatus[.manifest]
+      let path = manifest.fullPath
       if !manifest.status.isFile {
         let m = "No manifest in nest: \(nestStatus[.nest])"
-        throw MakeErr.local.errq(.fileNotFound(m), .resource(.manifest))
+        throw MakeErr.local.noFile(.manifest, path: path, msg: m)
       }
       let peerDir = peerStatus[.peerSourceDir]
       if peerDir.status.isDir {
         let m = "No peer source, but have peer dir: \(peerDir)"
-        throw MakeErr.local.errq(.fileNotFound(m), .resource(.peer))
+        throw MakeErr.local.noFile(.peer, path: peer.fullPath, msg: m)
       }
-      try sysCalls.createDir(peerDir.fullPath)
+      let dirPath = peerDir.fullPath
+      let makeErr = MakeErr.local
+      let createDirErr = makeErr.setting(
+        subject: .resource(.peerSourceDir, dirPath),
+        agent: .system
+      )
+      try createDirErr.runAsTaskLocal {
+        try sysCalls.createDir(dirPath)
+      }
 
       // update manifest
       let maniPath = manifest.filePath
@@ -247,14 +256,14 @@ public struct ClutchDriver {
         fileSeeker: fileSeeker
       )
       let okManifest = try await didManifest
-      updatedPeer = try await newPeer
       if !okManifest {
         let m = "Unable to update manifest for \(peerName)"
-        throw MakeErr.local.errq(.operationFailed(m), .resource(.manifest))
+        throw makeErr.fail(.manifest, path: maniPath.string, msg: m)
       }
+      updatedPeer = try await newPeer
       if !updatedPeer.status.isFile {
         let m = "Unable to create peer source for \(peerName)"
-        throw MakeErr.local.errq(.operationFailed(m), .resource(.peer))
+        throw makeErr.fail(.peer, path: peerDir.filePath.string, msg: m)
       }
     }
 
@@ -275,15 +284,16 @@ public struct ClutchDriver {
     guard let nest = nest, nest.nest.status.isDir else {
       throw MakeErr.local.err(
         .dirNotFound(input ?? ""),
-        subject: .resource(.nest)
+        subject: .resource(.nest, input ?? "")
       )
     }
+    let nestStr = nest.nest.fullPath
     guard let nestModule = ModuleName.make(nest.name, into: [.nestOnly]) else {
       let err = "Invalid nest name: \(nest.name)"
-      throw MakeErr.local.err(.bad(err), subject: .resource(.nest))
+      throw MakeErr.local.fail(.nest, path: nestStr, msg: err)
     }
     if let error = nest.error {
-      throw MakeErr.local.err(.bad(error), subject: .resource(.nest))
+      throw MakeErr.local.fail(.nest, path: nestStr, msg: error)
     }
     return NestPaths(nestModule, nest.nest.filePath)
   }
@@ -302,18 +312,18 @@ public struct ClutchDriver {
       let makeErr = MakeErr.local
       if !peerSrc.status.isFile {
         let m = "peer module (\(peerMod)) not in nest (\(nest))"
-        throw makeErr.err(.fileNotFound(m), subject: .resource(.peer))
+        throw makeErr.noFile(.executable, path: binary.fullPath, msg: m)
       }
       if !nestManifest.status.isFile {
-        let m = "manifest (\(nestManifest.fullPath)) not in nest (\(nest))"
-        throw makeErr.err(.fileNotFound(m), subject: .resource(.manifest))
+        let m = "manifest not found in nest (\(nest))"
+        throw makeErr.noFile(.manifest, path: nestManifest.fullPath, msg: m)
       }
       let fileSeeker = FileItemSeeker(systemCalls: sysCalls)
       // urk: silly system calls: executable -> string -> executable
       let swift = try await sysCalls.findExecutable(named: "swift")
       let swiftItem = fileSeeker.seekFile(.swift, swift)
       if !swiftItem.status.isFile {
-        throw makeErr.err(.fileNotFound("swift"))
+        throw makeErr.noFile(.swift, path: "", msg: "not on PATH?")
       }
       try await build(
         nestDir: nest.filePath,
@@ -323,10 +333,8 @@ public struct ClutchDriver {
       )
       bin = fileSeeker.seekFile(.executable, bin.fullPath)
       guard bin.status.isFile else {
-        throw makeErr.err(
-          .fileNotFound("\(bin)"),
-          subject: .resource(.executable)
-        )
+        let m = "No binary found after build completed normally?"
+        throw makeErr.noFile(.executable, path: bin.fullPath, msg: m)
       }
     }
 
@@ -338,14 +346,15 @@ public struct ClutchDriver {
     args: [String]
   ) async throws {
     let makeErr = MakeErr.local
-    makeErr.set(subject: .resource(.executable), part: .peerRun)
+    let path = bin.fullPath
+    makeErr.set(subject: .resource(.executable, path), agent: .peerRun)
     guard bin.status.isFile else {
-      throw makeErr.err(.fileNotFound("\(bin)"))
+      throw makeErr.noFile(.executable, path: path)
     }
-    trace("run: \(bin.fullPath) \(args)")
-    let next = MakeErr.local.setting(part: .peerRun, args: args)
+    trace("run: \(path) \(args)")
+    let next = MakeErr.local.setting(agent: .peerRun, args: args)
     try await next.runAsyncTaskLocal {
-      try await sysCalls.runProcess(bin.fullPath, args: args)
+      try await sysCalls.runProcess(path, args: args)
     }
   }
 
@@ -358,7 +367,10 @@ public struct ClutchDriver {
     let d = nestDir
     var args = ["build", "--package-path", d.string, "--product", "\(product)"]
     args += options.args
-    let next = MakeErr.local.setting(part: .peerBuild, args: args)
+    let next = MakeErr.local.setting(
+      subject: .resource(.peer, "\(product) in nest \(nestDir.string)"),
+      agent: .swiftBuild,
+      args: args)
     trace("build: \(swift.fullPath) \(args)")
     try await next.runAsyncTaskLocal {
       try await sysCalls.runProcess(swift.fullPath, args: args)
@@ -378,7 +390,7 @@ public struct ClutchDriver {
     let nest = nestPaths.nestOnly
     guard let peerModule = peer.nameNest(nest) else {
       let err = "Need peer/nest, have \(peer)/\(nest.name)"
-      throw MakeErr.local.err(.bad(err), subject: .resource(.peer))
+      throw MakeErr.local.fail(.nest, path: "", msg: err)
     }
     let options = PeerNest.BuildOptions.make(sysCalls.seekEnv(.CLUTCH_BUILD))
     guard

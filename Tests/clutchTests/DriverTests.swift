@@ -69,7 +69,7 @@ final class DriverTests: XCTestCase {
       args: ["\(prefix)\(unfound)"],
       checks: [  // two ways to check errors
         .error(unfound),  // any error containing the message
-        .errPart(.problem(.bad(unfound))),  // ErrParts.problem = .bad(match)
+        .errPart(.problem(.opFailed(unfound))),  // ErrParts.problem = .bad(match)
       ]
     )
     await runTest(sc)
@@ -80,7 +80,7 @@ final class DriverTests: XCTestCase {
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
     }
-    sc.with(checks: [.errPart(.subject(.resource(.manifest)))])
+    sc.with(checks: [.errPart(.subject(.resource(.manifest, "")))])
     await runTest(sc)
   }
 
@@ -90,7 +90,7 @@ final class DriverTests: XCTestCase {
       throw setupFailed("No manifest to remove")
     }
     sc.with(checks: [
-      .errPart(.subject(.resource(.manifest))),
+      .errPart(.subject(.resource(.manifest, ""))),
       .errPart(.problem(.fileNotFound(""))),
     ])
     await runTest(sc)
@@ -102,7 +102,7 @@ final class DriverTests: XCTestCase {
       throw setupFailed("No peer to remove")
     }
     sc.with(checks: [
-      .errPart(.subject(.resource(.peer))),
+      .errPart(.subject(.resource(.peer, ""))),
       .errPart(.problem(.fileNotFound(""))),
     ])
     await runTest(sc)
@@ -114,7 +114,7 @@ final class DriverTests: XCTestCase {
       throw setupFailed("No manifest to remove")
     }
     sc.with(checks: [
-      .errPart(.subject(.resource(.manifest))),
+      .errPart(.subject(.resource(.manifest, ""))),
       .errPart(.problem(.fileNotFound(""))),
     ])
     await runTest(sc)
@@ -125,7 +125,7 @@ final class DriverTests: XCTestCase {
     sc.with(
       args: ["\(commandPrefixes.catPeer)script"],  // urk: known value
       checks: [
-        .errPart(.subject(.resource(.peer))),
+        .errPart(.subject(.resource(.peer, ""))),
         .errPart(.problem(.fileNotFound("peer script"))),
       ]
     )
@@ -139,7 +139,7 @@ final class DriverTests: XCTestCase {
     }
     sc.with(
       checks: [
-        .errPart(.subject(.resource(.peer))),
+        .errPart(.subject(.resource(.peer, ""))),
         .errPart(.problem(.invalidFile("peer script"))),
       ])
     await runTest(sc)
