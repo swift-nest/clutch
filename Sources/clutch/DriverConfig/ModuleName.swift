@@ -14,8 +14,15 @@ extension DriverConfig {
     public let nest: String
 
     public var description: String {
-      let sep = kind == .nameNest ? "." : ""
-      return "\(kind): \(name)\(sep)\(nest)"
+      "\(kind): \(label)"
+    }
+
+    public var label: String {
+      switch kind {
+      case .nameOnly: return name
+      case .nestOnly: return nest
+      case .nameNest: return "\(name).\(nest)"
+      }
     }
     private init(_ kind: Kind, _ name: String, nest: String) {
       self.kind = kind
