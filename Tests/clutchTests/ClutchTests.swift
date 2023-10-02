@@ -23,7 +23,7 @@ final class ClutchTests: XCTestCase {
       }
     }
     let debugQuiet = Options.DEFAULT.args
-    let releaseQuiet = ["-c", "release", "--quiet"]
+    let releaseQuiet = ["-c", "release"] + Options.QUIET_ARGS
     let releaseLoud = ["-c", "release"]
     let releaseVerbose = ["-c", "release", "--verbose"]
     let tests: [TC] = [

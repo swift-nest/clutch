@@ -56,9 +56,9 @@ public struct PeerNest {
   public struct BuildOptions {
     // urk: build-time compiler version is not always run-time SPM version
     #if compiler(>=5.8)
-    private static let QUIET_ARGS = ["--quiet"]
+    static let QUIET_ARGS = ["--quiet"]
     #else
-    private static let QUIET_ARGS: [String] = []
+    static let QUIET_ARGS: [String] = []
     #endif
     static let DEFAULT = BuildOptions(
       config: "",
