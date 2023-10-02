@@ -187,6 +187,7 @@ final class DriverTests: XCTestCase {
     let baseNest = base.appending(defName)
     let baseAltNest = base.appending(altName)
     let randomPath = FilePath("randomBase").appending(randomName)
+    // swift-format-ignore
     let tests: [TC] = [
       // default
       TC("default", nil, defName, p: homeGitNest),
