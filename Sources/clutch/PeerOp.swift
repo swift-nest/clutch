@@ -35,7 +35,7 @@ public struct PeerOp {
     }
     return result
   }
-  
+
   /// Extract product names from package manifest content.
   ///
   /// - Parameter manifest: String content of Package.swift

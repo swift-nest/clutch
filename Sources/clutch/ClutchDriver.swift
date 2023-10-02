@@ -370,7 +370,8 @@ public struct ClutchDriver {
     let next = MakeErr.local.setting(
       subject: .resource(.peer, "\(product) in nest \(nestDir.string)"),
       agent: .swiftBuild,
-      args: args)
+      args: args
+    )
     trace("build: \(swift.fullPath) \(args)")
     try await next.runAsyncTaskLocal {
       try await sysCalls.runProcess(swift.fullPath, args: args)

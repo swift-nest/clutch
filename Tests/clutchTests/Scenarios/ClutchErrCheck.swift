@@ -175,7 +175,7 @@ extension Errors.Problem {
   }
   static let names = [
     "badSyntax", "dirNotFound", "fileNotFound", "invalidFile",  //
-    "opFailed", "thrown", "programError", 
+    "opFailed", "thrown", "programError",
   ]
 }
 

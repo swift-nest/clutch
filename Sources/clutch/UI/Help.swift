@@ -3,10 +3,10 @@ public enum Help {
   public static let VERSION = "0.5.0"
   static let LABEL =
     "# \(name) # Run Swift scripts using a common nest package library"
-  public static let argAbstract
-    = "script path or peer/nest command (with any run-peer arguments)"
-  public static let argDiscussion
-    = "[script | peer{.nest}] {arg}... | [path|cat]-peer{.nest} | [peers|dir]-nest"
+  public static let argAbstract =
+    "script path or peer/nest command (with any run-peer arguments)"
+  public static let argDiscussion =
+    "[script | peer{.nest}] {arg}... | [path|cat]-peer{.nest} | [peers|dir]-nest"
   static let SYNTAX =
     """
       #!/usr/bin/env clutch         # First line of script, if clutch on PATH

@@ -1,4 +1,4 @@
-import Foundation // Date, FileManager, ProcessInfo, URL; contains, fputs, range 
+import Foundation  // Date, FileManager, ProcessInfo, URL; contains, fputs, range
 import Script
 
 /// Given script, run executable from nest
@@ -16,7 +16,8 @@ import Script
 
   @Argument(
     parsing: .captureForPassthrough,
-    help: "Script full path and any run arguments")
+    help: "Script full path and any run arguments"
+  )
   var args: [String] = []
 
   public func run() async throws {
@@ -37,7 +38,7 @@ import Script
 
     // capture stage traces and dump on error
     var completedNormally = false
-    var traces = [String]() // or `@escaping () -> String` with terminal map...
+    var traces = [String]()  // or `@escaping () -> String` with terminal map...
     func trace(_ s: String) {
       traces.append(s)
     }
@@ -54,7 +55,7 @@ import Script
       trace("create manifest in: \(peer.nestPath.string)")
       guard try await Manifest.update(peer: peer) else {
         errExit("Unable to update manifest")
-      } // hmm: do manifest and new-source at same time?
+      }  // hmm: do manifest and new-source at same time?
       let peerSourceDir = peer.sourcePath.removingLastComponent().string
       trace("create dir in: \(peerSourceDir)")
       try FileManager.default.createDirectory(
@@ -82,9 +83,9 @@ import Script
       // Assuming the build-time compiler is the run-time SPM
       // --quiet added to spm in #5988 12/21/22, released in 5.8
       #if compiler(>=5.8)
-      	args += [ "--quiet", "-c", "debug" ]
+        args += ["--quiet", "-c", "debug"]
       #else
-      	args += [ "-c", "debug" ]
+        args += ["-c", "debug"]
       #endif
       trace("swift \(args)")
       try await execute("swift", arguments: args)
@@ -216,7 +217,7 @@ struct Peer {
     let url = URL(fileURLWithPath: path)
     let keys: Set<URLResourceKey> = [.contentModificationDateKey]
     guard let value = try? url.resourceValues(forKeys: keys),
-          let date = value.contentModificationDate
+      let date = value.contentModificationDate
     else {
       return Date(timeIntervalSinceReferenceDate: .zero)
     }

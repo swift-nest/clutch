@@ -26,7 +26,8 @@ public enum DriverConfig {
         !name.isEmpty
       {
         if let scName = nestNameFromScript, !scName.isEmpty {
-          error = "Using \(EnvName.CLUTCH_NEST_PATH.key) but script nest is \(scName)"
+          error =
+            "Using \(EnvName.CLUTCH_NEST_PATH.key) but script nest is \(scName)"
           return (nest, name, error)
         }
         return (nest, name, nil)
@@ -37,7 +38,9 @@ public enum DriverConfig {
       s.compactMap(Str.emptyToNil)
     }
     // Check candidate names under proposed base directories
-    let names = notEmpty([nestNameFromScript, envVar(.CLUTCH_NEST_NAME), "Nest"])
+    let names = notEmpty([
+      nestNameFromScript, envVar(.CLUTCH_NEST_NAME), "Nest",
+    ])
 
     func tryBaseDir(_ basePath: String?) -> FoundNest? {
       guard let path = basePath, !path.isEmpty else {

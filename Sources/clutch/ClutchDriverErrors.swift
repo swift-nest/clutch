@@ -11,7 +11,7 @@ extension ClutchDriver {
       public let args: [String]?
       public let fixHint: String?
       public var description: String {
-        "\(label)\n\(detail)" // duplicates subject+problem, but clearer
+        "\(label)\n\(detail)"  // duplicates subject+problem, but clearer
       }
       public var label: String {
         "\(subject) \(problem.message)"
@@ -38,8 +38,8 @@ extension ClutchDriver {
     }
 
     public enum Subject: Equatable, CustomStringConvertible, Sendable {
-      case CLI(String) // TODO: only used for default?
-      case environmentVariable(PeerNest.EnvName) // TODO: no such errors?
+      case CLI(String)  // TODO: only used for default?
+      case environmentVariable(PeerNest.EnvName)  // TODO: no such errors?
       case resource(PeerNest.ResourceKey, String)
       public var description: String {
         switch self {
@@ -93,7 +93,7 @@ extension ClutchDriver {
         case .fileNotFound(let s): return s
         case .dirNotFound(let s): return s
         case .opFailed(let s): return s
-        case .thrown(let s): 
+        case .thrown(let s):
           if let mine = s.error as? ErrParts {
             return mine.detail
           }
