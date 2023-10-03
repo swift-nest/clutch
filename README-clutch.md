@@ -69,50 +69,49 @@
     - Capture SystemCalls for super-verbose mode of failure feedback?
 </summary>
 
-### Bugs the user has to work around
-- Touch binary if rebuilt, but same (handle risk of false-positive build) 
+### User work-around's
+- Updated source text may result in same executable when no code changes
+    - workaround: README mention, warning in traces
+- Errors in mapping scripts to nests may result in overwriting sources
+    - workaround: user saves changes to be preserved in SCM/git
 
-#### New script is brittle
-- top-level code with misleading `// @main comment`
+#### New script operations are brittle
+- Top-level code with misleading `// @main comment` (false positive for @main)
     - workaround: rename peer.swift to main.swift
-- main style changing between top-level and `@main` on edit
+- Main style changing between top-level and `@main` on edit
     - workaround: rename manually
 - Non-compliant Package.swift
-    - workaround: integrate manually
+    - workaround: README documented; integrate manually or make Package comply
+- Failed operations require cleanup
+    - workaround: README documented; fix manually
 
-#### Error feedback and codes
-- tracing is minimal, just build and run
-- workaround's: TBD
-- Error messages not clear or suited for users
-- `fatal error` added to build failures - by Script gacking?
-- handle build code=!0 errors nicely - currently shwift throwing
-    - goal is to pass the same code back, no?
-- [ErrParts](Sources/clutch/ClutchDriverErrors.swift) needs UI work
-    - agent: clutch, swift-build, etc
-    - subject: usually missing resource or bad input or env var
-    - problem: bug to fix
-    - fixHint: need to support more hints
-
-### Missing user features
-- P2 CI+badging for reliability signal
-- P2 caution mode (or just upgrade?)
-    - detect unexpected duplicates (peer much larger than script from new source)
-    - check peer-declaration == source-presence
-    - report when peer found in multiple Nest (esp. if using env variable)
-    - main goal is to avoid losing any changes
-- P3 logging integration? esp. to segregate clutch from tool, and to monitor
+### Missing features, possible bugs
+- automate user workarounds
+- P2 Silence ErrParts on build errors since common and not an error
+- P2 Script/Shwift error text and exit code:
+    - On process failure, Script adds `error: fatalError` to stderr stream
+    - Error text reports exit code correctly
+    - But exit code is always 1 on error, even if script `exit(2)`
 - P3 exec script executable (test platform variants, streams, exit codes, etc.)
+- P3 logging integration? esp. to segregate clutch from tool, and to monitor
 - P3 sysCall tracing for FFDC (below)
     - record calls, then replay on exception when --verbose-clutch
-- P3 init-name{.Nest}: cat-name plus capture, chmod?
-- P3 SCM - automatically check in each version of a script?
-- P3 Persistent config +/- environment
+- P3 Caution mode (or just upgrade?)
+    - Detect unexpected duplicates (peer much larger than script from new source)
+    - Check peer-declaration == source-presence
+    - Report when peer found in multiple Nest (esp. if using env variable)
+    - Main goal is to avoid losing any changes
+- P3 SCM/git - automatically check in each version of a script?
+- P3 CI/test build and badging as reliability signal
+- P4 init-name{.Nest}: cat-name plus capture, chmod?
+- P4 Deploy?: scatter scripts, audit scatter, report status, and build/deploy all
+    - based on tracking source of peer when new?  (but location unreliable)
+- P4 Persistent config +/- environment
     - Read configuration from `$HOME/.clutch` (or `$XDG_CONFIG_HOME`)
     - Update code to load configuration defaults at build-time
-- P3 Deploy?: scatter scripts, audit scatter, report status, and build/deploy all
-    - based on tracking source of peer
-- P4 Guide: more needed for junior developers to get started?
-- P4 Support generating and running scripts by reading input stream
+    - But prefer executing script not to have to read a config file
+- P5 Guide: more needed for junior developers to get started?
+- P5 Support generating and running scripts by reading input stream
     - If script file does not exist and there is standard input
     - then pipe stdin to the script file before starting
     - e.g., `someGenScript | clutch newScriptName --help`:
@@ -131,10 +130,9 @@
 - related: segregating output channels for clutch, build, and executable
 
 ### Features avoided, mainly for simplicity and disutility
-- monitoring executions? No, want the tool to build and invoke, not be big brother
-- build trigger based on diffs
-- more indirection or control over naming
-- ? reading config.  Happy path should be 2 file+date-checks & invocation
+- Monitoring executions? No, want to build and invoke, not observe and store
+- Build trigger based on diffs
+- More indirection or control over naming
 
 </details>
 
@@ -151,5 +149,6 @@
 - urk: copyright headers
 - version (command, help string; update as part of tagging)
 - git practices/policies
+- contributor guidelines - default
 
 </details>
