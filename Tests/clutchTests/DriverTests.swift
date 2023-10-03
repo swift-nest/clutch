@@ -44,8 +44,8 @@ final class DriverTests: XCTestCase {
   public func testTraceBuildRun() async throws {
     let sc = fixtures.newScenario(.script(.new))
     sc.calls.configEnv(.CLUTCH_LOG, "anything")
-    let checks: [Check] = ["build", "run"].map {
-      .sysCall(.printErr, "TRACE clutch: \($0):")
+    let checks: [Check] = ["Create", "Add", "New", "Build", "Run"].map {
+      .sysCall(.printErr, "TRACE clutch: \($0)")
     }
     sc.with(checks: checks)
     await runTest(sc)

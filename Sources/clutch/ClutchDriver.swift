@@ -216,6 +216,7 @@ public struct ClutchDriver {
       if peer.lastModOr0 >= script.lastModOr0 {
         updatedPeer = peer
       } else {
+        trace("Update \(peer.fullPath) from \(script.fullPath)")
         try await peerOp.updatePeerSource(script: script, peer: peer)
         updatedPeer = fileSeeker.seekFile(.peer, peer.fullPath)
       }
@@ -238,18 +239,21 @@ public struct ClutchDriver {
         subject: .resource(.peerSourceDir, dirPath),
         agent: .system
       )
+      trace("Create \(dirPath)")
       try createDirErr.runAsTaskLocal {
         try sysCalls.createDir(dirPath)
       }
 
       // update manifest
       let maniPath = manifest.filePath
+      trace("Add \(peerName.name) to \(maniPath)")
       async let didManifest = peerOp.addPeerToManifestFile(
         peerName,
         manifest: maniPath
       )
 
       // create peer
+      trace("New \(peerName.name) source in \(peerDir.fullPath)")
       async let newPeer = peerOp.newPeerSource(
         script: script.filePath,
         peerDir: peerDir.filePath,
@@ -336,6 +340,15 @@ public struct ClutchDriver {
         let m = "No binary found after build completed normally?"
         throw makeErr.noFile(.executable, path: bin.fullPath, msg: m)
       }
+      if bin.lastModOr0 == binary.lastModOr0 {
+        let warning =
+        """
+        Warning: Build ok for \(peerMod.label), but executable date not updated.
+          Swift does not re-link executable if text changes do not affect code.
+          Make code changes or remove executable to avoid no-op rebuilds.
+        """
+        trace(warning)
+      }
     }
 
     try await runPeerBinary(bin, args: args)
@@ -351,7 +364,7 @@ public struct ClutchDriver {
     guard bin.status.isFile else {
       throw makeErr.noFile(.executable, path: path)
     }
-    trace("run: \(path) \(args)")
+    trace("Run: \(path) \(args)")
     let next = MakeErr.local.setting(agent: .peerRun, args: args)
     try await next.runAsyncTaskLocal {
       try await sysCalls.runProcess(path, args: args)
@@ -372,7 +385,7 @@ public struct ClutchDriver {
       agent: .swiftBuild,
       args: args
     )
-    trace("build: \(swift.fullPath) \(args)")
+    trace("Build: \(swift.fullPath) \(args)")
     try await next.runAsyncTaskLocal {
       try await sysCalls.runProcess(swift.fullPath, args: args)
     }
