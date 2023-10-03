@@ -195,8 +195,8 @@ public struct PeerOp {
       }
       return nil
     }
-    if let prod = eolAfter(#"products: ["#, code.startIndex),
-      let pack = eolAfter(#"  targets: ["#, prod)
+    if let prod = eolAfterQueryIfEmpty(code, query: #"products: ["#),
+       let pack = eolAfterQueryIfEmpty(code, query: #"  targets: ["#, prod)
     {  // false positives!
       return addPeer(code, peer: peer, nest: nest, product: prod, package: pack)
     }
@@ -208,6 +208,53 @@ public struct PeerOp {
       return nil
     }
     return addPeer(code, peer: peer, nest: nest, product: prod2, package: pack2)
+  }
+
+  /// To match `targets: [ // comment \n` but not `targets: [ "a" ]`,
+  /// get index of character after newline after query, if there is only whitespace
+  /// or a comment after the query.
+  /// - Parameters:
+  ///   - code: String text to match in
+  ///   - query: String to find in code
+  ///   - start: Optional starting index (defaults to start of code)
+  /// - Returns: String.Index or nil if not satisfied
+  static func eolAfterQueryIfEmpty(
+    _ code: String,
+    query: String,
+    _ start: String.Index? = nil
+  ) -> String.Index? {
+    let end = code.endIndex
+    var start = start ?? code.startIndex
+    while start < end {
+      guard let query = code.range(of: query, range: start..<end) else {
+        break;
+      }
+      if let eol = code.range(of: "\n", range: query.upperBound..<end),
+         isWhitespaceOrComment(code, query.upperBound..<eol.lowerBound),
+         eol.upperBound < end {
+        return eol.upperBound
+      }
+      start = query.upperBound
+    }
+    return nil
+  }
+  private static func isWhitespaceOrComment(
+    _ code: String,
+    _ range: Range<String.Index>
+  ) -> Bool{
+    let end = range.upperBound
+    var next = range.lowerBound
+    while next < end {
+      let c = code[next]
+      if "/" == c {
+        break // assuming 1 / is enough..
+      }
+      if !c.isWhitespace {
+        return false
+      }
+      next = code.index(after: next)
+    }
+    return true
   }
 
   static func addPeer(

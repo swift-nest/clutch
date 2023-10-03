@@ -3,6 +3,32 @@ import XCTest
 @testable import clutchLib
 
 final class NestOpTests: XCTestCase {
+  func testEolAfterQueryIfEmpty() {
+    typealias TC = (code: String, query: String, start: Int, result: Int?)
+    let tests: [TC] = [
+      ("bar \nnext", "bar", 0, 5),
+      ("foo\nnext", "foo", 0, 4),
+      ("foo // comment\nnext", "foo", 0, 15),
+      ("foo\n", "foo", 0, nil), // no text after newline
+      ("targ: [\n8", "targ: [", 0, 8),
+      ("targ: [  \n10", "targ: [", 0, 10), // ok: whitespace
+      ("targ: [//\n10", "targ: [", 0, 10), // ok: comment
+      ("targ: [//ab\n12", "targ: [", 0, 12), // ok: comment with text
+      ("targ: [\"\" \nnil", "targ: [", 0, nil), // not comment or whitespace
+      ("targ: [\"\" \nniltarg: [\nok", "targ: [", 0, 22), // ok, second value
+    ]
+    for (i, (code, query, start, expected)) in tests.enumerated() {
+      let startIndex = code.index(code.startIndex, offsetBy: start)
+      let actual = PeerOp.eolAfterQueryIfEmpty(code, query: query, startIndex)
+      let label = "[\(i)] {\(query)} in \"\(code)\""
+      if let expect = expected {
+        let expIndex = code.index(code.startIndex, offsetBy: expect)
+        XCTAssertEqual(expIndex, actual, label)
+      } else {
+        XCTAssertNil(actual, "nil \(label)")
+      }
+    }
+  }
   func testListProducts() throws {
     let code1 = """
       import PackageDescription
