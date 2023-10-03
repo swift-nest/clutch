@@ -1,15 +1,22 @@
 # clutch 🪺 run Swift scripts from a nest of dependencies
-- Put `#!/usr/bin/env clutch` on the first line of `tool.swift`.
-- When `tool.swift` is run, clutch creates and builds a peer as needed in a nest.
-- `tool` can depend on libraries in the nest, 
-  like [Swift Argument Parser](https://github.com/apple/swift-argument-parser) 
-  or [Shwift](https://github.com/GeorgeLyon/Shwift).
 
 Swift scripting is easier with clutch when 
 - scripts have dependencies, or
-- you want common code in a nest library, or
+- you want common code in a library, or
 - you want scattered scripts checked into a common package, or
-- scripts build & run faster because most code is pre-built in the nest package
+- scripts build & run faster because common code is pre-built in the nest package
+
+For each script, clutch makes a matching "peer" source, target, and product in a "nest" package:
+- A "nest" is a Swift package with a library of the same name (e.g., in `HOME/git/Nest`). 
+- Given a script (e.g., `.../foo/name.swift`) with `#!/usr/bin/env clutch` on the first line,
+- when `name.swift` is run, clutch creates, builds, and/or runs a peer product in the nest:
+- `Nest/Package.swift` gets an executable product `name` when the peer is created.
+- `Nest/Sources/name/main.swift` is created or updated to match the script file.
+- Script code can depend on the `Nest` library module, e.g., with dependencies
+  [Swift Argument Parser](https://github.com/apple/swift-argument-parser) 
+  or [Shwift](https://github.com/GeorgeLyon/Shwift).
+- When everything is up-to-date, clutch runs the executable with any arguments.
+- You can have different nests for related scripts (e.g., build, video, voice).
 
 ## Quickstart
 
@@ -84,11 +91,13 @@ The peer filename is `main.swift`, or `{peer}.swift` if it contains `@main`.
 ### Build in nest: `$HOME/git/{nest}/Package.swift`
 ```
   products: [
-    .executable(name: "peer", targets: [ "peer" ]), // for each peer
+    // peer product created for each script, using the script name {peer}
+    .executable(name: "{peer}", targets: [ "{peer}" ]),
     .library(name: "{nest}", targets: ["{nest}"]),
   ],
   targets: [
-    .executableTarget(name: "peer", dependencies: ["{nest}"]), // for each peer
+    // peer executable created for each script
+    .executableTarget(name: "{peer}", dependencies: ["{nest}"]),
     .target(
       name: "{nest}",
       dependencies: [ ... ] 
@@ -108,9 +117,8 @@ To configure the nest location or output, set environment variables:
 
 The nest directory name must be the name of the library module.
 
-For sample nest packages, see [nests](nests).  If you instead start
-with `swift package init --type [tool|executable]`, edit the result
-to add the nest library and `products: [\n]` (following the sample packages).
+For sample nest packages, see [nests](nests) or use 
+`swift package init --type library`.
 
 </details>
 
