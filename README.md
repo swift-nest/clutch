@@ -53,7 +53,7 @@ Install clutch, create a nest package, and write a Swift script file anywhere.
 
 When you invoke the script, clutch runs it after ensuring its nest package peer
 (`Nest/Sources/peer/peer.swift`) is created, updated, and/or built.  A nest
-package has a nest target (with the nest name) for common code and dependencies.
+package has a nest library (with the nest name) for common code and dependencies.
 
 
 <details><summary>
@@ -108,7 +108,9 @@ To configure the nest location or output, set environment variables:
 
 The nest directory name must be the name of the library module.
 
-For sample nest packages, see [nests](nests).
+For sample nest packages, see [nests](nests).  If you instead start
+with `swift package init --type [tool|executable]`, edit the result
+to add the nest library and `products: [\n]` (following the sample packages).
 
 </details>
 
@@ -116,9 +118,9 @@ For sample nest packages, see [nests](nests).
 
 ### Using clutch directly to run and manage peers
 ```
-clutch name{.Nest}             # run peer by name
-clutch [peers|path]-Nest       # Nest peers or location
-clutch [cat|path]-name{.Nest}  # Peer code or location
+clutch name{.Nest}             # Run peer by name
+clutch [peers|path]-Nest       # Emit Nest peers or location
+clutch [cat|path]-name{.Nest}  # Emit peer code or location
 ```
 
 </summary>
@@ -158,8 +160,9 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
     - Swift does not re-link the binary after edits result in the same code
       (so a second clutch run would trigger another no-op build).
 - Output streams and exit codes mix clutch, swift build, and executables.
-- Users have to manually move or remove the peer to rename or delete.
-    - Remove `Sources/peer` and two lines for peer in the nest `Package.swift`
+    - A failed exit code will always be 1 (even if the script exits with 2).
+- Users have to manually edit the package to rename/delete peers or fix errors.
+    - To delete, remove `Sources/peer` and two lines for peer in `Package.swift`
 
 </details>
 
@@ -167,11 +170,11 @@ clutch cat-init.Data   # Output code from peer `init` in Data nest
 - Tested on macOS/Linux, but unproven in the wild...
     - [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswift-nest%2Fclutch%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/swift-nest/clutch)
     - [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswift-nest%2Fclutch%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/swift-nest/clutch)
-- Command set, CLI interface, and configuration could change.
+- Command set, CLI interface, configuration, and error-handling could change.
 
 ## Alternatives and related libraries
 - [clatch](Sources/clatch/clatch.swift) is clutch done quick, just for scripts.
-    - No commands, no environment-based configuration, no SystemCalls wrapper
+    - No commands, no environment configuration, no error or SystemCalls wrapper
 - The `swift` command works fine if no libraries are needed.
     - Use `#!/usr/bin/env swift` at the start of a script file to run directly
     - `swift script.swift` does the same, without the `#!` hash-bang line
