@@ -8,9 +8,12 @@ typealias Ask = DriverConfig.UserAsk
 typealias Data = AskData
 typealias EnvName = PeerNest.EnvName
 
+/// Test ``DriverConfig/UserAsk``  (i.e., command and parameters),
 final class AskDataTests: XCTestCase {
   static let quiet = "" == ""
 
+  /// Test ``DriverConfig/UserAsk`` calculation of user "ask" data (i.e., command and parameters),
+  /// per ask enumeration (help, error, run/cat/nest peers, or run script)
   func testAskData() throws {
     let name = "name"
     let nest = "Nest"
