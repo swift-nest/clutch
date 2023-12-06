@@ -5,11 +5,13 @@ import struct SystemPackage.FilePath
 
 @testable import clutchLib
 
-/// Integration test all normal scenarios and some error scenarios and effects.
+/// Integration test all normal/positive scenarios, some error scenarios and effects,
+/// and nest-finding combinations.
 ///
-/// In most cases, checks are incomplete.
+/// Check scenarios by recording and verifying system calls and errors.
+/// In most cases, checks are incomplete but distinct per-scenario.
 ///
-/// Known-missing tests:
+/// Known-missing positive tests:
 /// - Script with @main gets peer source name name.swift, not main.swift
 ///
 /// Known-missing error tests:
@@ -17,7 +19,6 @@ import struct SystemPackage.FilePath
 /// - Cannot read manifest?
 /// - Cannot update manifest for new peer
 /// - Cannot create file for new peer
-
 final class DriverTests: XCTestCase {
   typealias Scenario = ClutchCommandScenario
   typealias KnownCalls = KnownSystemCalls
@@ -32,6 +33,7 @@ final class DriverTests: XCTestCase {
   let dataToStdout = false
   let commandPrefixes = CommandPrefixes()
 
+  /// Verify all positive scenarios from ``Scenario/allCases``
   public func testAllScenarios() async throws {
     let cases = Scenario.allCases
     //let cases: [Scenario] = [.nest(.peers)]
@@ -41,6 +43,7 @@ final class DriverTests: XCTestCase {
     }
   }
 
+  /// Verify tracing includes Create...Run
   public func testTraceBuildRun() async throws {
     let sc = fixtures.newScenario(.script(.new))
     sc.calls.configEnv(.CLUTCH_LOG, "anything")
@@ -51,6 +54,7 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
+  /// Error: Invalid nest name (not an identifier)
   public func testErrNestNameBad() async throws {
     let sc = fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
@@ -61,6 +65,7 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
+  /// Error: Invalid nest (no such directory)
   public func testErrNestNotFound() async throws {
     let sc = fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
@@ -75,7 +80,8 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
-  public func testErrPeerRunNoManifestOn() async throws {
+  /// Error: No manifest found when attempting to run the peer
+  public func testErrPeerRunNoManifest() async throws {
     let sc = fixtures.newScenario(.peer(.run))
     guard sc.calls.remove(.manifest) else {
       throw setupFailed("No manifest to remove")
@@ -84,6 +90,7 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
+  /// Error: No manifest when creating a new script
   public func testErrScriptNewNoManifest() async throws {
     let sc = fixtures.newScenario(.script(.new))
     guard sc.calls.remove(.manifest) else {
@@ -96,18 +103,7 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
-  public func testErrScriptRunPeerMissing() async throws {
-    let sc = fixtures.newScenario(.script(.uptodate))
-    guard sc.calls.remove(.peer) else {
-      throw setupFailed("No peer to remove")
-    }
-    sc.with(checks: [
-      .errPart(.subject(.resource(.peer, ""))),
-      .errPart(.problem(.fileNotFound(""))),
-    ])
-    await runTest(sc)
-  }
-
+  /// Error: no manifest when trying to list peers
   public func testErrListPeersNoManifest() async throws {
     let sc = fixtures.newScenario(.nest(.peers))
     guard sc.calls.remove(.manifest) else {
@@ -120,6 +116,20 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
+  /// Error: no peer file when trying to run (though we have peer dir and manifest)
+  public func testErrScriptRunPeerMissing() async throws {
+    let sc = fixtures.newScenario(.script(.uptodate))
+    guard sc.calls.remove(.peer) else {
+      throw setupFailed("No peer to remove")
+    }
+    sc.with(checks: [
+      .errPart(.subject(.resource(.peer, ""))),
+      .errPart(.problem(.fileNotFound(""))),
+    ])
+    await runTest(sc)
+  }
+
+  /// Error: no peer file when trying to catenate it
   public func testErrPeerCatPeerMissing() async throws {
     let sc = fixtures.newScenario(.script(.new))
     sc.with(
@@ -132,6 +142,7 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
+  /// Error: peer file empty when trying to catenate it
   public func testErrPeerCatPeerEmpty() async throws {
     let sc = fixtures.newScenario(.peer(.cat))
     guard sc.calls.setFileDetails(.peer, content: "//") else {
@@ -145,7 +156,9 @@ final class DriverTests: XCTestCase {
     await runTest(sc)
   }
 
-  /// Test each path to a nest name.
+  /// Test each way of constructing a path to a nest,
+  /// i.e., combinations of finding the nest name and parent directory
+  /// through defaults, environment variables, or arguments.
   ///
   /// Does not test combinations of settings, where priority would matter.
   public func testFindNest() {
@@ -156,7 +169,7 @@ final class DriverTests: XCTestCase {
       let label: String
       let input: String?
       let name: String
-      let path: FilePath
+      let path: FilePath // expected
       let envVals: [EnvVal]
       init(
         _ label: String,
@@ -188,8 +201,7 @@ final class DriverTests: XCTestCase {
     let baseAltNest = base.appending(altName)
     let randomPath = FilePath("randomBase").appending(randomName)
     // swift-format-ignore
-    let tests: [TC] = [
-      // default
+    let tests: [TC] = [ // p: expected-path; others are input
       TC("default", nil, defName, p: homeGitNest),
       TC("alt-name-input", altName, altName, p: homeGitAltNest),
       TC("alt-name-env", nil, altName, p: homeGitAltNest,
@@ -232,7 +244,8 @@ final class DriverTests: XCTestCase {
         XCTAssertEqual(test.name, result.nestOnly.nest, "name for \(test)")
         XCTAssertEqual(test.path, result.nestDir, "path for \(test)")
       } else {
-        _ = try? driver.findNest(inputNestName: test.input)
+        // uncomment to debug errors by retrying
+        // _ = try? driver.findNest(inputNestName: test.input)
         XCTFail("\(test) threw error")
       }
     }
@@ -242,16 +255,27 @@ final class DriverTests: XCTestCase {
   func setupFailed(_ m: String) -> Err {
     Err.err("Setup failed: \(m)")
   }
+
+  
+  /// Run scenario, checking expected results or errors
+  /// - Parameters:
+  ///   - test: ``ScenarioCase`` to run
+  ///   - caller: defaults to #function
   func runTest(_ test: ScenarioCase, caller: StaticString = #function) async {
+    // scenario construction failed
     guard test.calls.internalErrors.isEmpty else {
       for (error, srcLoc) in test.calls.internalErrors {
         XCTFail(error, file: srcLoc.file, line: srcLoc.line)
       }
       return
     }
+    // run test, and do basic error check (fail if error missed or unexpected)
     let (recordCalls, err) = await runCheckingErrMismatch(test)
-    checkCalls(test, calls: recordCalls)  // check even for errors
 
+    // check expected calls are actually made
+    checkCalls(test, calls: recordCalls)
+
+    // configure dump before checking expected errors
     defer {
       if dataToStdout || !TestHelper.quiet || !test.pass {
         // permit missing HOME since that might be tested
@@ -263,23 +287,38 @@ final class DriverTests: XCTestCase {
         print(dump)
       }
     }
-
+    
     guard let err = err else {
+      // if no error, no error-parts to check.  Missed error reported above.
       return
     }
+
+    // Check non-ErrParts via substring matching
     guard let errParts = err as? ErrParts else {
       checkErrorExpected(test, error: "\(err)")
       return
     }
+
+    // Check ErrParts errors via part matching
     checkErrPartsExpected(test, errParts: errParts)
   }
-
+  
+  /// Check that expected system calls are actually made.
+  ///
+  /// (Caller should also check that unexpected or prohibited calls are not made.)
+  ///
+  /// - Parameters:
+  ///   - test: ``ScenarioCase``
+  ///   - calls: ``RecordSystemCalls``
   func checkCalls(_ test: ScenarioCase, calls: RecordSystemCalls) {
     let found = calls.renders
+    /// Match the system call and the call substring
     func match(_ check: SceneCheck, _ callCheck: CallCheck) -> Bool {
       check.call == callCheck.funct
         && callCheck.call.contains(check.match)
     }
+
+    /// Ensure every expected call is made
     for check in test.checks.scenarios {
       if nil == found.first(where: { match(check, $0) }) {
         XCTFail("\(test) expected \(check)")
@@ -288,6 +327,8 @@ final class DriverTests: XCTestCase {
     }
     // already reported extra errors
   }
+
+  /// Error check via ``ErrParts``
   func checkErrPartsExpected(_ test: ScenarioCase, errParts actual: ErrParts) {
     for expect in test.checks.errParts {
       if let errorMessage = expect.check(actual) {
@@ -296,6 +337,8 @@ final class DriverTests: XCTestCase {
       }
     }
   }
+
+  /// Error check via String
   func checkErrorExpected(_ test: ScenarioCase, error: String) {
     for check in test.checks.errors {
       if !error.contains(check.match) {
@@ -305,6 +348,9 @@ final class DriverTests: XCTestCase {
     }
   }
 
+  /// Run scenario, and fail if error is unexpected or missing.
+  ///
+  /// Otherwise, return the system-calls recording and error thrown (if any)
   func runCheckingErrMismatch(
     _ test: ScenarioCase
   ) async -> (RecordSystemCalls, (any Error)?) {
@@ -332,6 +378,7 @@ final class DriverTests: XCTestCase {
     }
   }
 
+  /// Run scenario, capturing system calls for verification.
   func runCapturing(
     _ test: ScenarioCase
   ) async -> (RecordSystemCalls, (any Error)?) {
@@ -351,6 +398,8 @@ final class DriverTests: XCTestCase {
     }
     return (recordCalls, err)
   }
+
+  /// Convenience struct to force-unwrap known prefixes exactly once
   struct CommandPrefixes {
     let nestDir: String
     let nestPeers: String
