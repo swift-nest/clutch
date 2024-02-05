@@ -3,20 +3,21 @@
 Swift scripting is easier with clutch when 
 - scripts have dependencies, or
 - you want common code in a library, or
-- you want scattered scripts checked into a common package, or
+- you want scattered scripts checked into a common local package, or
 - scripts build & run faster because common code is pre-built in the nest package
 
-For each script, clutch makes a matching "peer" source, target, and product in a "nest" package:
-- A "nest" is a Swift package with a library of the same name (e.g., in `HOME/git/Nest`). 
-- Given a script (e.g., `.../foo/name.swift`) with `#!/usr/bin/env clutch` on the first line,
-- when `name.swift` is run, clutch creates, builds, and/or runs a peer product in the nest:
-- `Nest/Package.swift` gets an executable product `name` when the peer is created.
-- `Nest/Sources/name/main.swift` is created or updated to match the script file.
-- Script code can depend on the `Nest` library module, e.g., with dependencies
-  [Swift Argument Parser](https://github.com/apple/swift-argument-parser) 
-  or [Shwift](https://github.com/GeorgeLyon/Shwift).
+For each script, clutch makes a matching "peer" executable in a local "nest" package:
+- A "nest" host is a Swift package with a library of the same name (e.g., in `HOME/git/Build`). 
+- The "peer" is a copy of the script in its own executable target module in the nest package.
+- The script `name.Build.swift` has `#!/usr/bin/env clutch` on the first line and lives anywhere.
+- When the script is run, `clutch` creates, builds, and/or runs a peer product in the nest:
+    - `Build/Package.swift` gets an executable product `name` when the script is first run.
+    - `Build/Sources/name/main.swift` is created or updated to match the script file.
+    - `name.Build.swift` can depend on the `Build` library module, 
+        - e.g., depending on 
+          [Swift Argument Parser](https://github.com/apple/swift-argument-parser) 
+          or [Shwift](https://github.com/GeorgeLyon/Shwift).
 - When everything is up-to-date, clutch runs the executable with any arguments.
-- You can have different nests for related scripts (e.g., build, video, voice).
 
 ## Quickstart
 
