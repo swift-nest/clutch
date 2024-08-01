@@ -4,12 +4,14 @@ import PackageDescription
 
 let name = "clutch"
 let clatch = "clatch"
+let clutchArgParser = "ClutchAP"
 let package = Package(
   name: name,
   platforms: [ .macOS(.v12) ],
   products: [
     .executable(name: name, targets: [name]),
     .executable(name: clatch, targets: [clatch]),
+    .executable(name: clutchArgParser, targets: [clutchArgParser]),
   ],
   dependencies: [
     .package(
@@ -33,7 +35,7 @@ let package = Package(
       path: "Sources/\(name)-tool"
     ),
     .executableTarget(
-      name: "ClutchAP",
+      name: clutchArgParser,
       dependencies: [ .target(name: "\(name)Lib") ]
     ),
     .executableTarget(
@@ -46,6 +48,6 @@ let package = Package(
       .target(name: "\(name)Lib"),
       .product(name: "Atomics", package: "swift-atomics")
       ]
-    )
+    ),
   ]
 )
