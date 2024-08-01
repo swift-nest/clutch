@@ -1,7 +1,7 @@
 extension DriverConfig {
 
   /// Operation-wide run configuration
-  public struct AskMode {
+  public struct AskMode: Sendable {
     static let LOG = AskMode(logProgressForUser: true)
     static let QUIET = AskMode(logProgressForUser: false)
     public let logProgressForUser: Bool

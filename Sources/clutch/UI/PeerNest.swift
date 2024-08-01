@@ -53,7 +53,7 @@ public struct PeerNest {
     }
   }
 
-  public struct BuildOptions {
+  public struct BuildOptions: Sendable {
     // urk: build-time compiler version is not always run-time SPM version
     #if compiler(>=5.8)
       static let QUIET_ARGS = ["--quiet"]

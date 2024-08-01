@@ -2,8 +2,8 @@ import struct SystemPackage.FilePath
 
 extension DriverConfig {
   /// Validated (by client) as non-empty identifiers for peer module, nest, or both
-  public struct ModuleName: CustomStringConvertible {
-    public enum Kind: CaseIterable {
+  public struct ModuleName: CustomStringConvertible, Sendable {
+    public enum Kind: CaseIterable, Sendable {
       case nameOnly, nameNest, nestOnly
     }
 

@@ -51,8 +51,7 @@ public struct ClutchDriver {
     args: [String],
     ask: AskData
   ) async throws {
-    let makeErr = MakeErr.local
-    makeErr.set(ask: ask.ask, args: args)
+    let makeErr = MakeErr.local.setting(ask: ask.ask, args: args)
 
     // emissions from runAsk(..)
     func programErr(_ err: String) -> ClutchErr {
@@ -247,24 +246,26 @@ public struct ClutchDriver {
       // update manifest
       let maniPath = manifest.filePath
       trace("Add \(peerName.name) to \(maniPath)")
-      async let didManifest = peerOp.addPeerToManifestFile(
+      let peerOpCopy = peerOp
+      async let didManifest = peerOpCopy.addPeerToManifestFile(
         peerName,
         manifest: maniPath
-      )
+      )  // A-268 641 23
 
       // create peer
       trace("New \(peerName.name) source in \(peerDir.fullPath)")
-      async let newPeer = peerOp.newPeerSource(
+      let peerOpCopy2 = peerOp
+      async let newPeerFilePath = peerOpCopy2.newPeerSource(
         script: script.filePath,
-        peerDir: peerDir.filePath,
-        fileSeeker: fileSeeker
+        peerDir: peerDir.filePath
       )
+
       let okManifest = try await didManifest
       if !okManifest {
         let m = "Unable to update manifest for \(peerName)"
         throw makeErr.fail(.manifest, path: maniPath.string, msg: m)
       }
-      updatedPeer = try await newPeer
+      updatedPeer = fileSeeker.seekFile(.peer, try await newPeerFilePath)
       if !updatedPeer.status.isFile {
         let m = "Unable to create peer source for \(peerName)"
         throw makeErr.fail(.peer, path: peerDir.filePath.string, msg: m)
@@ -342,11 +343,11 @@ public struct ClutchDriver {
       }
       if bin.lastModOr0 == binary.lastModOr0 {
         let warning =
-        """
-        Warning: Build ok for \(peerMod.label), but executable date not updated.
-          Swift does not re-link executable if text changes do not affect code.
-          Make code changes or remove executable to avoid no-op rebuilds.
-        """
+          """
+          Warning: Build ok for \(peerMod.label), but executable date not updated.
+            Swift does not re-link executable if text changes do not affect code.
+            Make code changes or remove executable to avoid no-op rebuilds.
+          """
         trace(warning)
       }
     }
@@ -358,9 +359,11 @@ public struct ClutchDriver {
     _ bin: NestItem,
     args: [String]
   ) async throws {
-    let makeErr = MakeErr.local
     let path = bin.fullPath
-    makeErr.set(subject: .resource(.executable, path), agent: .peerRun)
+    let makeErr = MakeErr.local.setting(
+      subject: .resource(.executable, path),
+      agent: .peerRun
+    )
     guard bin.status.isFile else {
       throw makeErr.noFile(.executable, path: path)
     }

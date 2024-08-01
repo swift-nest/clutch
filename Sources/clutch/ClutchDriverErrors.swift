@@ -103,12 +103,12 @@ extension ClutchDriver {
       }
     }
 
-    public class ErrBuilder {
+    public final class ErrBuilder: Sendable {
       @TaskLocal static var local = ErrBuilder()
-      var ask: DriverConfig.UserAsk
-      var agent: Agent
-      var subject: Subject
-      var args: [String]  // TODO: args unused
+      let ask: DriverConfig.UserAsk
+      let agent: Agent
+      let subject: Subject
+      let args: [String]  // TODO: args unused
       public required init(
         ask: DriverConfig.UserAsk = .programErr,
         agent: Agent = .clutch,
@@ -119,17 +119,6 @@ extension ClutchDriver {
         self.agent = agent
         self.subject = subject
         self.args = args
-      }
-      public func set(
-        subject: Subject? = nil,
-        agent: Agent? = nil,
-        ask: DriverConfig.UserAsk? = nil,
-        args: [String]? = nil
-      ) {
-        self.subject = subject ?? self.subject
-        self.agent = agent ?? self.agent
-        self.ask = ask ?? self.ask
-        self.args = args ?? self.args
       }
 
       public func setting(

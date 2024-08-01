@@ -1,24 +1,28 @@
+import Atomics
 import XCTest
 
 /// Capture Source location at test creation time for use in assertions.
 ///
 /// Messages prefixed with `{index}] {prefix}`
 struct SrcLoc {
-  private static var INDEX = 100  // urk: not thread-safe, variable test order
+
+  private static let index = ManagedAtomic<Int>(100)
+  private static func nextIndex() -> Int {
+    index.loadThenWrappingIncrement(ordering: .sequentiallyConsistent)
+  }
 
   let index: Int
   let prefix: String
   let file: StaticString
   let line: UInt
 
-  /// Staticly index (unreliable)
+  /// Staticly index
   init(
     prefix: String = "",
     _ file: StaticString = #file,
     _ line: UInt = #line
   ) {
-    let index = Self.INDEX
-    Self.INDEX += 1
+    let index = Self.nextIndex()
     self.init(index: index, prefix: prefix, file, line)
   }
   /// Index directly

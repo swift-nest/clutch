@@ -1,9 +1,13 @@
-import struct SystemPackage.FilePath
+#if swift(>=6)
+  import struct SystemPackage.FilePath
+#else
+  @preconcurrency import struct SystemPackage.FilePath
+#endif
 
-public protocol FileKey: Hashable {
+public protocol FileKey: Hashable, Sendable {
   var str: String { get }  // TODO: rename
 }
-public struct FileItem<Key: FileKey>: CustomStringConvertible {
+public struct FileItem<Key: FileKey>: CustomStringConvertible, Sendable {
 
   public let key: Key
   public let filePath: FilePath
@@ -26,7 +30,7 @@ public struct FileItem<Key: FileKey>: CustomStringConvertible {
   }
 }
 
-public enum FileStatus: CustomStringConvertible {
+public enum FileStatus: CustomStringConvertible, Sendable {
   case file, dir, NA
   public var asBool: Bool? {
     isDir ? true : (isFile ? false : nil)

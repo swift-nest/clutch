@@ -54,7 +54,7 @@ typealias ModuleName = DriverConfig.ModuleName
 // MARK: Nest commands
 extension ClutchAP {
   struct NestDir: Script {
-    public static var configuration = APHelp.config(
+    public static let configuration = APHelp.config(
       "dir",
       abstract: "Emits path of nest directory to stdout",
       usage: "dir <Nest>"
@@ -73,7 +73,7 @@ extension ClutchAP {
   }
 
   struct NestPeers: Script {
-    public static var configuration = APHelp.config(
+    public static let configuration = APHelp.config(
       "peers",
       abstract: "Emit nest peers to stdout",
       usage: "peers <Nest>"
@@ -106,7 +106,7 @@ extension ClutchAP {
   ///
   struct BuildRunScript: Script {  // Shell works here
     typealias AskKind = DriverConfig.UserAskKind
-    public static var configuration = APHelp.config(
+    public static let configuration = APHelp.config(
       "build/run",
       abstract: "Run script with args (create, update, and build as needed)",
       usage: "<script> {arg}..."
@@ -188,7 +188,7 @@ extension ClutchAP {
   }
 
   struct PeerCat: Script {
-    public static var configuration = APHelp.config(
+    public static let configuration = APHelp.config(
       "cat",
       abstract: "Emit peer source to stdout",
       usage: "cat <peer>{.<nest>}"
@@ -224,7 +224,7 @@ extension ClutchAP {
   }
 
   struct PeerPath: Script {
-    public static var configuration = APHelp.config(
+    public static let configuration = APHelp.config(
       "path",
       abstract: "Emit path of peer source to stdout",
       usage: "path <peer>{.<nest>}"
@@ -248,7 +248,7 @@ extension ClutchAP {
   }
 
   struct PeerRun: Script {
-    public static var configuration = APHelp.config(
+    public static let configuration = APHelp.config(
       "run",
       abstract: "Run peer with optional args",
       usage: "run <peer>{.<nest>} {arg}..."

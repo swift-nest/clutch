@@ -8,7 +8,7 @@ enum TestHelper {
   static let quiet = true
   typealias SrcLoc = (file: StaticString, line: UInt)
   static func loc(
-    _ file: StaticString = #file,
+    _ file: StaticString = #filePath,
     _ line: UInt = #line
   ) -> SrcLoc {
     (file, line)
@@ -17,7 +17,7 @@ enum TestHelper {
     _ exp: T,
     _ act: T,
     _ label: String? = nil,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     XCTAssertEqual(exp, act, label ?? "", file: file, line: line)

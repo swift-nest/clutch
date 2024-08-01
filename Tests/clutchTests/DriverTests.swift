@@ -169,7 +169,7 @@ final class DriverTests: XCTestCase {
       let label: String
       let input: String?
       let name: String
-      let path: FilePath // expected
+      let path: FilePath  // expected
       let envVals: [EnvVal]
       init(
         _ label: String,
@@ -256,7 +256,6 @@ final class DriverTests: XCTestCase {
     Err.err("Setup failed: \(m)")
   }
 
-  
   /// Run scenario, checking expected results or errors
   /// - Parameters:
   ///   - test: ``ScenarioCase`` to run
@@ -287,7 +286,7 @@ final class DriverTests: XCTestCase {
         print(dump)
       }
     }
-    
+
     guard let err = err else {
       // if no error, no error-parts to check.  Missed error reported above.
       return
@@ -302,7 +301,7 @@ final class DriverTests: XCTestCase {
     // Check ErrParts errors via part matching
     checkErrPartsExpected(test, errParts: errParts)
   }
-  
+
   /// Check that expected system calls are actually made.
   ///
   /// (Caller should also check that unexpected or prohibited calls are not made.)

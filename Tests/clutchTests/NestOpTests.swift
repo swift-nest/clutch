@@ -9,13 +9,13 @@ final class NestOpTests: XCTestCase {
       ("bar \nnext", "bar", 0, 5),
       ("foo\nnext", "foo", 0, 4),
       ("foo // comment\nnext", "foo", 0, 15),
-      ("foo\n", "foo", 0, nil), // no text after newline
+      ("foo\n", "foo", 0, nil),  // no text after newline
       ("targ: [\n8", "targ: [", 0, 8),
-      ("targ: [  \n10", "targ: [", 0, 10), // ok: whitespace
-      ("targ: [//\n10", "targ: [", 0, 10), // ok: comment
-      ("targ: [//ab\n12", "targ: [", 0, 12), // ok: comment with text
-      ("targ: [\"\" \nnil", "targ: [", 0, nil), // not comment or whitespace
-      ("targ: [\"\" \nniltarg: [\nok", "targ: [", 0, 22), // ok, second value
+      ("targ: [  \n10", "targ: [", 0, 10),  // ok: whitespace
+      ("targ: [//\n10", "targ: [", 0, 10),  // ok: comment
+      ("targ: [//ab\n12", "targ: [", 0, 12),  // ok: comment with text
+      ("targ: [\"\" \nnil", "targ: [", 0, nil),  // not comment or whitespace
+      ("targ: [\"\" \nniltarg: [\nok", "targ: [", 0, 22),  // ok, second value
     ]
     for (i, (code, query, start, expected)) in tests.enumerated() {
       let startIndex = code.index(code.startIndex, offsetBy: start)

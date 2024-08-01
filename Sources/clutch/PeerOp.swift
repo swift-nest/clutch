@@ -1,9 +1,17 @@
 import struct SystemPackage.FilePath
 
-public struct PeerOp {
+public struct PeerOp: @unchecked Sendable {
   typealias MakeErr = ClutchDriver.Errors.ErrBuilder
   let sysCalls: SystemCalls
   let fileSeeker: FileItemSeeker
+
+  /// Create peer helper.
+  ///
+  /// Input expected to be stateless access to underlying system (i.e., Sendable).
+  ///
+  /// - Parameters:
+  ///   - sysCalls: ``SystemCalls`` presumed to be stateless, i.e., no data to send
+  ///   - fileSeeker: ``FileItemSeeker`` (if nil, delegate to sysCalls)
   init(
     _ sysCalls: SystemCalls,
     fileSeeker: FileItemSeeker? = nil
@@ -88,9 +96,8 @@ public struct PeerOp {
 
   func newPeerSource(
     script: FilePath,
-    peerDir: FilePath,
-    fileSeeker: FileItemSeeker
-  ) async throws -> NestItem {
+    peerDir: FilePath
+  ) async throws -> String {
     var code = "//"
     code += try await readFile(.script, script.string)
 
@@ -108,7 +115,7 @@ public struct PeerOp {
     }
     let filepath = peerDir.appending("\(name).swift").string
     try await writeFile(.peer, filepath, content: code)
-    return fileSeeker.seekFile(.peer, filepath)
+    return filepath
   }
 
   func updatePeerSource(script: NestItem, peer: NestItem) async throws {
@@ -196,7 +203,7 @@ public struct PeerOp {
       return nil
     }
     if let prod = eolAfterQueryIfEmpty(code, query: #"products: ["#),
-       let pack = eolAfterQueryIfEmpty(code, query: #"  targets: ["#, prod)
+      let pack = eolAfterQueryIfEmpty(code, query: #"  targets: ["#, prod)
     {  // false positives!
       return addPeer(code, peer: peer, nest: nest, product: prod, package: pack)
     }
@@ -227,11 +234,12 @@ public struct PeerOp {
     var start = start ?? code.startIndex
     while start < end {
       guard let query = code.range(of: query, range: start..<end) else {
-        break;
+        break
       }
       if let eol = code.range(of: "\n", range: query.upperBound..<end),
-         isWhitespaceOrComment(code, query.upperBound..<eol.lowerBound),
-         eol.upperBound < end {
+        isWhitespaceOrComment(code, query.upperBound..<eol.lowerBound),
+        eol.upperBound < end
+      {
         return eol.upperBound
       }
       start = query.upperBound
@@ -241,13 +249,13 @@ public struct PeerOp {
   private static func isWhitespaceOrComment(
     _ code: String,
     _ range: Range<String.Index>
-  ) -> Bool{
+  ) -> Bool {
     let end = range.upperBound
     var next = range.lowerBound
     while next < end {
       let c = code[next]
       if "/" == c {
-        break // assuming 1 / is enough..
+        break  // assuming 1 / is enough..
       }
       if !c.isWhitespace {
         return false

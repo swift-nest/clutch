@@ -125,7 +125,7 @@ final class ClutchTests: XCTestCase {
     _ exp: T,
     _ act: T,
     _ NestKey: String? = nil,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     XCTAssertEqual(exp, act, NestKey ?? "", file: file, line: line)
