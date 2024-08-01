@@ -104,7 +104,7 @@ extension ClutchDriver {
     }
 
     public final class ErrBuilder: Sendable {
-      @TaskLocal static var local = ErrBuilder()
+      @TaskLocal public static var local = ErrBuilder()
       let ask: DriverConfig.UserAsk
       let agent: Agent
       let subject: Subject

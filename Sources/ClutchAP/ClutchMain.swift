@@ -2,7 +2,7 @@ import ArgumentParser
 import Foundation  // urk - arg parser is balking on --init
 import Script
 
-@testable import clutchLib
+import clutchLib
 
 typealias ModuleName = DriverConfig.ModuleName
 
@@ -26,12 +26,14 @@ typealias ModuleName = DriverConfig.ModuleName
     CommandConfiguration(
       commandName: "ClutchAP",
       usage:
-        "clutch [[<scriptfile> | run <peer>] {arg}... | [cat|path] <peer> | [peers|dir] <nest>]",
+        "ClutchAP [[<scriptfile> | run <peer>] {arg}... | [cat|path] <peer> | [peers|dir] <nest>]",
       discussion:
         """
         Run Swift scripts from a nest package with dependencies.
 
         Create, update, and build a peer in the nest for each script.
+
+        ALPHA: ClutchAP is untested.  Use clutch instead.
         """,
       version: "\(Help.VERSION)",
       shouldDisplay: true,
