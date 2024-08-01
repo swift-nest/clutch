@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/GeorgeLyon/Shwift.git",
       "state" : {
-        "revision" : "5892f84ad27a66146af43212f6c5f229210534e0",
-        "version" : "2.0.1"
+        "revision" : "d7be04898d094ddce6140cc6a2e9a83fc994b66d",
+        "version" : "3.1.1"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-atomics.git",
       "state" : {
-        "revision" : "6c89474e62719ddcc1e9614989fff2f68208fe10",
-        "version" : "1.1.0"
+        "revision" : "cd142fd2f64be2100422d658e7411e39489da985",
+        "version" : "1.2.0"
       }
     },
     {
