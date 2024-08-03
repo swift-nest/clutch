@@ -124,16 +124,16 @@ extension SrcLoc {
 
   /// Factory for reliable indexing
   struct Maker {
-    let count: Count
+    private let count: AtomicIndex
     init(count: Int = 100) {
-      self.count = Count(next: count)
+      self.count = AtomicIndex(next: count)
     }
     func sl(
       prefix: String = "",
       _ file: StaticString = #file,
       _ line: UInt = #line
     ) -> SrcLoc {
-      SrcLoc(index: count.nextInc(), prefix: prefix, file, line)
+      SrcLoc(index: count.next(), prefix: prefix, file, line)
     }
   }
   /// Factory with unreliable indexing
