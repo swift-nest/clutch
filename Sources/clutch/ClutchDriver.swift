@@ -7,6 +7,25 @@ public typealias AskMode = DriverConfig.AskMode
 
 public struct ClutchDriver {
 
+  /// Create and run ask (to avoid crossing isolation domains)
+  /// 
+  /// - Parameters:
+  ///   - sysCalls: ``SystemCalls``
+  ///   - mode: ``AskMode``
+  ///   - data: ``AskData``
+  ///   - cwd: ``FilePath`` for current working directory to evaluate relative path arguments
+  ///   - args: Array of String passed to command by user
+  public static func runAsk(
+    sysCalls: SystemCalls,
+    mode: AskMode,
+    data: AskData,
+    cwd: FilePath,
+    args: [String]
+  ) async throws {
+    let driver = ClutchDriver(sysCalls: sysCalls, mode: mode)
+    try await driver.runAsk(cwd: cwd, args: args, ask: data)
+  }
+
   public static func make(
     logging: Bool? = false
   ) -> ClutchDriver {
