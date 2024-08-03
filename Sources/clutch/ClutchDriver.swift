@@ -8,7 +8,7 @@ public typealias AskMode = DriverConfig.AskMode
 public struct ClutchDriver {
 
   /// Create and run ask (to avoid crossing isolation domains)
-  /// 
+  ///
   /// - Parameters:
   ///   - sysCalls: ``SystemCalls``
   ///   - mode: ``AskMode``

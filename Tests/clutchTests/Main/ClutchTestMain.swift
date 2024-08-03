@@ -52,7 +52,7 @@
       if !TestHelper.inCI && !TestHelper.quiet {
         let prefix = "\n## clutch \(args) | data"
         let copy = await wrapped.records.copy()
-        let data = copy.map {$0.tabbed(home: stripHome, date: stripDate)}
+        let data = copy.map { $0.tabbed(home: stripHome, date: stripDate) }
           .joined(separator: "\n")
         print("\(prefix) START\n\(data)\(prefix) END\n")
       }

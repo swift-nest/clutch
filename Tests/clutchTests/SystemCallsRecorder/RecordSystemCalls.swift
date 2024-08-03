@@ -71,7 +71,7 @@ final class RecordSystemCalls {
     public func render(_ item: T) -> String {
       renderer(item)
     }
-    public func copy() -> [(String, String, String)] {[]} // TODO P0 REMOVE
+    public func copy() -> [(String, String, String)] { [] }  // TODO P0 REMOVE
   }
 }
 
@@ -85,7 +85,7 @@ extension RecordSystemCalls {
       self.funct = f
       self.call = call
     }
-    
+
     /// Tab-delimited fields, optionally stripping HOME or date to compare output across runs.
     public func tabbed(
       home: String? = nil,
@@ -228,7 +228,8 @@ extension RecordSystemCalls {
     _ p: P,
     f: (P) -> R,
     makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    recorder: TagRender<
+      SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) -> R {
     let result = f(p)
@@ -240,7 +241,8 @@ extension RecordSystemCalls {
     _ p: P,
     f: (P) throws -> R,
     makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    recorder: TagRender<
+      SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) throws -> R {
     do {
@@ -257,7 +259,8 @@ extension RecordSystemCalls {
     _ p: P,
     f: (P) async throws -> R,
     makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    recorder: TagRender<
+      SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) async throws -> R {
     do {
@@ -275,7 +278,8 @@ extension RecordSystemCalls {
     p: P,
     r: R?,
     _ makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    _ recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    _ recorder: TagRender<
+      SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) {
     let recording = recordingPrep(p: p, r: r, makeRecord, recorder)
@@ -289,7 +293,8 @@ extension RecordSystemCalls {
     p: P,
     r: R?,
     _ makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    _ recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    _ recorder: TagRender<
+      SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) async {
     let recording = recordingPrep(p: p, r: r, makeRecord, recorder)
@@ -301,7 +306,8 @@ extension RecordSystemCalls {
     p: P,
     r: R?,
     _ makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    _ recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    _ recorder: TagRender<
+      SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) -> CallRecord {
     let record = makeRecord(p, r)

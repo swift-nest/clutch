@@ -14,4 +14,3 @@ actor ActorArray<T: Sendable> {
     array.append(contentsOf: sequence)
   }
 }
-

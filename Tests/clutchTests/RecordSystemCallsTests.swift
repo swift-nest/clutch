@@ -52,7 +52,7 @@ final class RecordSystemCallsTests: XCTestCase {
       (.environment, unknownKey),
       (.printErr, errMessage),
       (.createDir, newDir),
-      (.fileStatus, homeDir)
+      (.fileStatus, homeDir),
     ]
 
     // Make calls, check any (mock) results
@@ -68,7 +68,6 @@ final class RecordSystemCallsTests: XCTestCase {
 
     let homeStatus = sysCalls.seekFileStatus(homeDir)  // 5 fileStatus
     H.ea(.dir, homeStatus, "HOME status")
-
 
     // ------ Assess recordings
     // start/next counts

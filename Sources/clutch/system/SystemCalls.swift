@@ -1,4 +1,3 @@
-
 /// Abstract system calls for testability
 public protocol SystemCalls {
   func createDir(_ path: String) throws

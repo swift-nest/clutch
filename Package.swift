@@ -54,10 +54,10 @@ let package = Package(
       name: "\(name)Tests",
       dependencies: [
         .target(name: "\(name)Lib"),
-        .product(name: "Atomics", package: "swift-atomics")
+        .product(name: "Atomics", package: "swift-atomics"),
       ]
     ),
   ],
-  swiftLanguageVersions: [.v6] // 7/13/24
+  swiftLanguageVersions: [.v6]  // 7/13/24
   //swiftLanguageModes: [.v6] // 7/31/24
 )

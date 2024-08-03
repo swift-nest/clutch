@@ -20,4 +20,3 @@ public struct AtomicIndex: Sendable {
 
   public var str: String { "\(peekNext())" }
 }
-

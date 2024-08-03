@@ -126,10 +126,9 @@ extension KnownSystemCalls {
   }
 }
 
-
 // MARK: SystemCalls conformance
 // NOT actually sendable, but not sent?
-extension KnownSystemCalls: @unchecked Sendable {} // generally single-threaded?
+extension KnownSystemCalls: @unchecked Sendable {}  // generally single-threaded?
 extension KnownSystemCalls: SystemCallsSendable {}
 
 extension KnownSystemCalls: SystemCalls {
