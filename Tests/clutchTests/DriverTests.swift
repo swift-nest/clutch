@@ -25,7 +25,7 @@ final class DriverTests: XCTestCase {
   typealias ScenarioCase = KnownSystemCallFixtures.ScenarioCase
   typealias Check = KnownSystemCallFixtures.Check
   typealias SceneCheck = KnownSystemCallFixtures.ScenarioCheck
-  typealias CallCheck = RecordSystemCalls.IndexFuncCall
+  typealias CallCheck = RecordSystemCalls.CallRecord
   typealias ErrParts = ClutchDriver.Errors.ErrParts
   typealias UserAsk = DriverConfig.UserAsk
 
@@ -34,6 +34,7 @@ final class DriverTests: XCTestCase {
   let commandPrefixes = CommandPrefixes()
 
   /// Verify all positive scenarios from ``Scenario/allCases``
+  @MainActor
   public func testAllScenarios() async throws {
     let cases = Scenario.allCases
     //let cases: [Scenario] = [.nest(.peers)]
@@ -44,6 +45,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Verify tracing includes Create...Run
+  @MainActor
   public func testTraceBuildRun() async throws {
     let sc = fixtures.newScenario(.script(.new))
     sc.calls.configEnv(.CLUTCH_LOG, "anything")
@@ -55,6 +57,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: Invalid nest name (not an identifier)
+  @MainActor
   public func testErrNestNameBad() async throws {
     let sc = fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
@@ -66,6 +69,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: Invalid nest (no such directory)
+  @MainActor
   public func testErrNestNotFound() async throws {
     let sc = fixtures.newScenario(.nest(.dir))
     let prefix = commandPrefixes.nestDir
@@ -81,6 +85,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: No manifest found when attempting to run the peer
+  @MainActor
   public func testErrPeerRunNoManifest() async throws {
     let sc = fixtures.newScenario(.peer(.run))
     guard sc.calls.remove(.manifest) else {
@@ -91,6 +96,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: No manifest when creating a new script
+  @MainActor
   public func testErrScriptNewNoManifest() async throws {
     let sc = fixtures.newScenario(.script(.new))
     guard sc.calls.remove(.manifest) else {
@@ -104,6 +110,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: no manifest when trying to list peers
+  @MainActor
   public func testErrListPeersNoManifest() async throws {
     let sc = fixtures.newScenario(.nest(.peers))
     guard sc.calls.remove(.manifest) else {
@@ -117,6 +124,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: no peer file when trying to run (though we have peer dir and manifest)
+  @MainActor
   public func testErrScriptRunPeerMissing() async throws {
     let sc = fixtures.newScenario(.script(.uptodate))
     guard sc.calls.remove(.peer) else {
@@ -130,6 +138,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: no peer file when trying to catenate it
+  @MainActor
   public func testErrPeerCatPeerMissing() async throws {
     let sc = fixtures.newScenario(.script(.new))
     sc.with(
@@ -143,6 +152,7 @@ final class DriverTests: XCTestCase {
   }
 
   /// Error: peer file empty when trying to catenate it
+  @MainActor
   public func testErrPeerCatPeerEmpty() async throws {
     let sc = fixtures.newScenario(.peer(.cat))
     guard sc.calls.setFileDetails(.peer, content: "//") else {
@@ -161,6 +171,7 @@ final class DriverTests: XCTestCase {
   /// through defaults, environment variables, or arguments.
   ///
   /// Does not test combinations of settings, where priority would matter.
+  @MainActor
   public func testFindNest() {
     let sc = fixtures.newScenario(.nest(.dir))
     typealias EnvVal = (name: EnvName, value: String)
@@ -260,6 +271,7 @@ final class DriverTests: XCTestCase {
   /// - Parameters:
   ///   - test: ``ScenarioCase`` to run
   ///   - caller: defaults to #function
+  @MainActor
   func runTest(_ test: ScenarioCase, caller: StaticString = #function) async {
     // scenario construction failed
     guard test.calls.internalErrors.isEmpty else {
@@ -279,7 +291,7 @@ final class DriverTests: XCTestCase {
       if dataToStdout || !TestHelper.quiet || !test.pass {
         // permit missing HOME since that might be tested
         let home = test.calls.envKeyValue["HOME"] ?? "UNKNOWN HOME"
-        let lines = recordCalls.renderLines(home: home, date: true)
+        let lines = recordCalls.map { $0.tabbed(home: home, date: true) }
         let linesJoined = lines.joined(separator: "\n")
         let prefix = "## \(caller) (\(test.scenario.name)) data"
         let dump = "\(prefix) - START\n\(linesJoined)\n\(prefix) - END"
@@ -309,8 +321,8 @@ final class DriverTests: XCTestCase {
   /// - Parameters:
   ///   - test: ``ScenarioCase``
   ///   - calls: ``RecordSystemCalls``
-  func checkCalls(_ test: ScenarioCase, calls: RecordSystemCalls) {
-    let found = calls.renders
+  func checkCalls(_ test: ScenarioCase, calls: [CallCheck]) {
+    let found = calls
     /// Match the system call and the call substring
     func match(_ check: SceneCheck, _ callCheck: CallCheck) -> Bool {
       check.call == callCheck.funct
@@ -350,9 +362,10 @@ final class DriverTests: XCTestCase {
   /// Run scenario, and fail if error is unexpected or missing.
   ///
   /// Otherwise, return the system-calls recording and error thrown (if any)
+  @MainActor
   func runCheckingErrMismatch(
     _ test: ScenarioCase
-  ) async -> (RecordSystemCalls, (any Error)?) {
+  ) async -> ([CallCheck], (any Error)?) {
     let (recordCalls, error) = await runCapturing(test)
     let expectedErrors = test.checks.filter { $0.isError }
     let expectError = !expectedErrors.isEmpty
@@ -378,24 +391,30 @@ final class DriverTests: XCTestCase {
   }
 
   /// Run scenario, capturing system calls for verification.
+  @MainActor
   func runCapturing(
     _ test: ScenarioCase
-  ) async -> (RecordSystemCalls, (any Error)?) {
-    let count = Count(next: 100)
-    let recordCalls = RecordSystemCalls(delegate: test.calls, counter: count)
+  ) async -> ([CallCheck], (any Error)?) {
+    let recordCalls = RecordSystemCalls(delegate: test.calls)
     let cwd = FilePath(".")
     let args = test.args.args
-    var (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: recordCalls)
-    mode = mode.with(logConfig: recordCalls.seekEnv(.CLUTCH_LOG))
-    let driver = ClutchDriver(sysCalls: recordCalls, mode: mode)
+    let (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: recordCalls)
+    let mode2 = mode.with(logConfig: recordCalls.seekEnv(.CLUTCH_LOG))
 
-    var err: (any Error)?
     do {
-      try await driver.runAsk(cwd: cwd, args: args, ask: ask)
+      let askCopy = ask
+      try await ClutchDriver.runAsk(
+        sysCalls: recordCalls,
+        mode: mode2,
+        data: askCopy,
+        cwd: cwd,
+        args: args
+      )
+      let results = await recordCalls.records.copy()
+      return (results, nil)
     } catch {
-      err = error
+      return ([], error)
     }
-    return (recordCalls, err)
   }
 
   /// Convenience struct to force-unwrap known prefixes exactly once
