@@ -12,37 +12,30 @@ import protocol clutchLib.SystemCalls
 /// - Tests validate either the captured context or the String rendering.
 ///
 /// The types involved:
-/// - Enumerated calls (SCF): ``SystemCallsFunc``
-/// - given: RSC=RecordingSystemCalls, SC=SystemCalls
-/// - Then for callOp in SC functions [environment, printErr, ...] per SCF:
-///      - SCRec.callOp is the call record type
-/// - MakeRecordOfSystemCall.callOp creates SCRec.callOp
-/// - RenderSystemCallRecord.callOp renders SCRec.callOp to String
-/// - RSC has 1 IndexedRecorder of SCRec.callOp
-/// - RSC proxies callOp to delegate.callOp, recording record with indexed recorder
+/// - Target API: ``SystemCalls``
+/// - Each call has enumerated tag: ``SystemCallsFunc``
+/// - Each call has parameters P and result R, so closure signature is `(P) -> R` (modulo throws)
+/// - Each call has a renderer to reduce P and R to String for recording (to avoid saving/copying context)
+/// - To wrap each call: run the closure, record the result or error thrown, and return/throw
+/// - Each record is indexed and saved after the call completes, normally or otherwise
 ///
 /// Limitations:
-/// - Tests should not depend on index order in the new-script scenario because
-///   it has async operations to update the package and write the new file.
-///
-class RecordSystemCalls {
+/// - Async API's mean the call index/order can vary in tests
+final class RecordSystemCalls {
   typealias Record = Call.Record
   typealias SC = SystemCalls
   typealias SCType = SystemCallsType
   typealias Make = MakeRecordOfSystemCall
   typealias Render = RenderSystemCallRecord
   typealias RecordIndex = Int
-  typealias IndexFuncCall = (
-    index: RecordIndex, funct: SystemCallsFunc, call: String
-  )
 
-  public private(set) var renders = [IndexFuncCall]()
+  let records = ActorArray<CallRecord>()
 
   static func recorder<T>(
     _ funct: SystemCallsFunc,
-    _ render: @escaping (T) -> String
-  ) -> IndexedRecorder<RecordIndex, SystemCallsFunc, T> {
-    IndexedRecorder<RecordIndex, SystemCallsFunc, T>(funct, render)
+    _ render: @escaping @Sendable (T) -> String
+  ) -> TagRender<SystemCallsFunc, T> {
+    .init(tag: funct, renderer: render)
   }
 
   let createDirRecorder = recorder(.createDir, Render.createDir)
@@ -58,48 +51,76 @@ class RecordSystemCalls {
   let writeFileRecorder = recorder(.writeFile, Render.writeFile)
 
   let delegate: SystemCalls
-  var count: Count
+  let index: AtomicIndex
+  let first: Int
 
-  init(delegate: SystemCalls, counter: Count) {
+  init(delegate: SystemCalls, index: AtomicIndex = .init(next: 100)) {
     self.delegate = delegate
-    self.count = counter
+    self.index = index
+    self.first = index.peekNext()
+  }
+
+  public nonisolated func indexFirstNext() -> (first: Int, next: Int) {
+    (first, index.peekNext())
+  }
+  public struct TagRender<Tag, T>: Sendable where Tag: Sendable {
+    public typealias Renderer = @Sendable (T) -> String
+    public let tag: Tag
+    let renderer: Renderer
+
+    public func render(_ item: T) -> String {
+      renderer(item)
+    }
+    public func copy() -> [(String, String, String)] {[]} // TODO P0 REMOVE
   }
 }
 
-// MARK: print data
 extension RecordSystemCalls {
-  public func renderLines(home: String? = nil, date: Bool = false) -> [String] {
-    let result = renders.map { (index, funct, str) in
-      "\(index)\t\(funct.name)\t\(str)"
+  public struct CallRecord: Sendable {
+    let index: RecordIndex
+    let funct: SystemCallsFunc
+    let call: String
+    init(_ index: RecordIndex, _ f: SystemCallsFunc, _ call: String) {
+      self.index = index
+      self.funct = f
+      self.call = call
+    }
+    
+    /// Tab-delimited fields, optionally stripping HOME or date to compare output across runs.
+    public func tabbed(
+      home: String? = nil,
+      date: Bool = true
+    ) -> String {
+      Self.normalize("\(index)\t\(funct.name)\t\(call)", home: home, date: date)
     }
 
-    guard nil == home && !date else {
+    public static func normalize(
+      _ input: String,
+      home: String? = nil,
+      date: Bool = true
+    ) -> String {
+      guard date || !(home?.isEmpty ?? true) else {
+        return input
+      }
+      var result = input
+      if let home = home, !home.isEmpty, let range = result.range(of: home) {
+        result.replaceSubrange(range, with: "HOME")
+      }
+      if date, let range = result.range(of: "Date(") {
+        let after = range.upperBound..<result.endIndex
+        if let end = result.range(of: ")", range: after) {
+          let replace = range.upperBound..<end.lowerBound
+          result.replaceSubrange(replace, with: "DATE")
+        }
+      }
       return result
     }
-    return result.map { Self.normalizeHomeDate($0, home: home, date: date) }
-  }
-  /// Towards making rendered output comparable across runs.
-  static func normalizeHomeDate(
-    _ callData: String,
-    home: String? = nil,
-    date: Bool = true
-  ) -> String {
-    var result = callData
-    if let home = home, !home.isEmpty, let range = result.range(of: home) {
-      result.replaceSubrange(range, with: "HOME")
-    }
-    if date, let range = result.range(of: "Date(") {
-      let after = range.upperBound..<result.endIndex
-      if let end = result.range(of: ")", range: after) {
-        let replace = range.upperBound..<end.lowerBound
-        result.replaceSubrange(replace, with: "DATE")
-      }
-    }
-    return result
   }
 }
 
 // MARK: SystemCalls conformance
+extension RecordSystemCalls: @unchecked Sendable {}
+//extension RecordSystemCalls: SystemCallsSendable {}
 extension RecordSystemCalls: SystemCalls {
   func createDir(_ path: String) throws {
     try wrapThrowing(
@@ -207,8 +228,7 @@ extension RecordSystemCalls {
     _ p: P,
     f: (P) -> R,
     makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    recorder: IndexedRecorder<
-      RecordIndex, SystemCallsFunc, Call.Record<SC, P, R>
+    recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) -> R {
     let result = f(p)
@@ -220,8 +240,7 @@ extension RecordSystemCalls {
     _ p: P,
     f: (P) throws -> R,
     makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    recorder: IndexedRecorder<
-      RecordIndex, SystemCallsFunc, Call.Record<SC, P, R>
+    recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) throws -> R {
     do {
@@ -233,12 +252,12 @@ extension RecordSystemCalls {
       throw error
     }
   }
+
   func wrapThrowingAsync<P, R>(
     _ p: P,
     f: (P) async throws -> R,
     makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    recorder: IndexedRecorder<
-      RecordIndex, SystemCallsFunc, Call.Record<SC, P, R>
+    recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) async throws -> R {
     do {
@@ -250,19 +269,46 @@ extension RecordSystemCalls {
       throw error
     }
   }
+
+  /// URK: uses detached Task
   func recording<P, R>(
     p: P,
     r: R?,
     _ makeRecord: (P, R?) -> Call.Record<SC, P, R>,
-    _ recorder: IndexedRecorder<
-      RecordIndex, SystemCallsFunc, Call.Record<SC, P, R>
+    _ recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
     >
   ) {
+    let recording = recordingPrep(p: p, r: r, makeRecord, recorder)
+    let copyRecords = records
+    Task {
+      await copyRecords.append(recording)
+    }
+  }
+
+  func recordingAsync<P, R>(
+    p: P,
+    r: R?,
+    _ makeRecord: (P, R?) -> Call.Record<SC, P, R>,
+    _ recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    >
+  ) async {
+    let recording = recordingPrep(p: p, r: r, makeRecord, recorder)
+    await records.append(recording)
+  }
+
+  /// common recording steps
+  private func recordingPrep<P, R>(
+    p: P,
+    r: R?,
+    _ makeRecord: (P, R?) -> Call.Record<SC, P, R>,
+    _ recorder: TagRender<SystemCallsFunc, Call.Record<SC, P, R>
+    >
+  ) -> CallRecord {
     let record = makeRecord(p, r)
-    let index = count.nextInc()
+    let index = index.next()
     let s = recorder.render(record)
-    renders.append((index, recorder.tag, s))
-    recorder.record(index, record)
+    let recording = CallRecord(index, recorder.tag, s)
+    return recording
   }
 }
 
