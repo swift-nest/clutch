@@ -3,7 +3,7 @@ extension DriverConfig {
   //enum UserAsk: CaseIterable
 
   /// Organize ``UserAsk`` by rough semantics and data required
-  public enum UserAskKind {
+  public enum UserAskKind: Sendable {
     case error(UserAsk, String)
     case script(UserAsk, NestItem, ModuleName)
     case commandPeer(UserAsk, ModuleName)

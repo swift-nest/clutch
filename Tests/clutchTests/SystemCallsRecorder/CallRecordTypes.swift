@@ -3,6 +3,8 @@ import clutchLib
 
 import struct Script.FilePath
 
+public protocol SystemCallsSendable: SystemCalls, Sendable {}
+
 /// SystemCall call-record type aliases
 ///
 /// Using lowercase to distinction per-function call record types
@@ -24,7 +26,7 @@ enum SystemCallsType {
   typealias findExecutable = Record<SC, String, String>
 }
 
-public enum SystemCallsFunc: String {
+public enum SystemCallsFunc: String, Sendable {
   typealias SC = clutchLib.SystemCalls
   case environment, lastModified, fileStatus, now
   case printErr, printOut, createDir

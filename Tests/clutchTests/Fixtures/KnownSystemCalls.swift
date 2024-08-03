@@ -20,6 +20,7 @@
 /// Limitations
 /// - on readFile, this doesn't support throwing injected errors
 /// - on writeFile if prior, last-mod-time is incremented by 1.  Is that predictable/usable enough?
+/// - Single-threaded only; marked as Sendable, but NOT
 class KnownSystemCalls {
   // hmm: not Encodable d/t StaticString in SrcLoc
 
@@ -125,7 +126,12 @@ extension KnownSystemCalls {
   }
 }
 
+
 // MARK: SystemCalls conformance
+// NOT actually sendable, but not sent?
+extension KnownSystemCalls: @unchecked Sendable {} // generally single-threaded?
+extension KnownSystemCalls: SystemCallsSendable {}
+
 extension KnownSystemCalls: SystemCalls {
   func createDir(_ path: String) throws {
     fileStatus[path] = Self.IS_DIR
