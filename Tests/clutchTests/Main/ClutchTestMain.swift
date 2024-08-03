@@ -5,6 +5,8 @@
 
   @testable import clutchLib
 
+  extension FoundationScriptSystemCalls: SystemCallsSendable {}
+
   /// Replicate Main wrapper in test module to avoid putting recording/wrapper code in clutch module.
   ///
   /// - Can't run in tests without Script.run wrapper (builds Shell, creates async context)
@@ -29,26 +31,34 @@
       let stripHome: String
       do {
         let sysCalls = FoundationScriptSystemCalls()
-        let start = 100
-        let count = Count(next: start)
-        wrapped = RecordSystemCalls(delegate: sysCalls, counter: count)
+        wrapped = RecordSystemCalls(delegate: sysCalls)
         stripHome = sysCalls.seekEnv(.HOME) ?? ""
       }
-
       let cwd = workingDirectory
       let (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: wrapped)
-      let driver = ClutchDriver(sysCalls: wrapped, mode: mode)
-      defer {  // For now, just emit to stdout
-        if !TestHelper.inCI && !TestHelper.quiet {
-          let prefix = "\n## clutch \(args) | data"
-          let data =
-            wrapped
-            .renderLines(home: stripHome, date: stripDate)
-            .joined(separator: "\n")
-          print("\(prefix) START\n\(data)\(prefix) END\n")
-        }
+      var err: Error? = nil
+      do {
+        try await ClutchDriver.runAsk(
+          sysCalls: wrapped,
+          mode: mode,
+          data: ask,
+          cwd: cwd,
+          args: args
+        )
+
+      } catch {
+        err = error
       }
-      try await driver.runAsk(cwd: cwd, args: args, ask: ask)
+      if !TestHelper.inCI && !TestHelper.quiet {
+        let prefix = "\n## clutch \(args) | data"
+        let copy = await wrapped.records.copy()
+        let data = copy.map {$0.tabbed(home: stripHome, date: stripDate)}
+          .joined(separator: "\n")
+        print("\(prefix) START\n\(data)\(prefix) END\n")
+      }
+      if let err {
+        throw err
+      }
     }
   }
 #endif
