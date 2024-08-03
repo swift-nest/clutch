@@ -5,6 +5,14 @@ import PackageDescription
 let name = "clutch"
 let clatch = "clatch"
 let clutchArgParser = "ClutchAP"
+
+let settings: [SwiftSetting] = [
+  .enableUpcomingFeature("ExistentialAny"),
+  .enableUpcomingFeature("FullTypedThrows"),  // SE-0413
+  .enableUpcomingFeature("SameElementRequirements"),  // SE-0393
+  // .enableExperimentalFeature("AccessLevelOnImport"),  // SE-0409
+  // .enableUpcomingFeature("InternalImportsByDefault")  // SE-0408
+]
 let package = Package(
   name: name,
   platforms: [.macOS(.v12)],
@@ -50,5 +58,6 @@ let package = Package(
       ]
     ),
   ],
-  swiftLanguageVersions: [.v6]
+  swiftLanguageVersions: [.v6] // 7/13/24
+  //swiftLanguageModes: [.v6] // 7/31/24
 )
