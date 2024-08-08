@@ -305,3 +305,6 @@ enum APHelp {
     }
   }
 }
+
+// s6/SE-0364 permits fully-qualified-names to work for retroactive
+extension ArgumentParser.CommandConfiguration: @unchecked Swift.Sendable {}
