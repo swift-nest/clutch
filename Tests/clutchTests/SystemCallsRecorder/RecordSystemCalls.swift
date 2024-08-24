@@ -1,7 +1,7 @@
 import Foundation
 import clutchLib
 
-import struct Script.FilePath
+import struct SystemPackage.FilePath
 import protocol clutchLib.SystemCalls
 
 /// Record calls and results passed to SystemCalls delegate.

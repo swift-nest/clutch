@@ -1,4 +1,3 @@
-import Script
 import XCTest
 
 @testable import clutchLib

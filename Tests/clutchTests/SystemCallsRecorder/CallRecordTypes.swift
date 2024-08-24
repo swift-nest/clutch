@@ -1,7 +1,7 @@
 import Foundation
 import clutchLib
 
-import struct Script.FilePath
+import struct SystemPackage.FilePath
 
 public protocol SystemCallsSendable: SystemCalls, Sendable {}
 
