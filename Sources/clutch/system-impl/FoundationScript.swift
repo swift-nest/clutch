@@ -1,6 +1,5 @@
 // Date FileManager fputs LocalizedError ObjcBool ProcessInfo  URLResourceKey
 import Foundation
-import Script
 
 typealias FS = FoundationScript
 /// Delegate for ``SystemCalls`` depending on Foundation and Script.
@@ -50,20 +49,53 @@ enum FoundationScript {
   }
 
   static func runProcess(_ path: String, args: [String]) async throws {
-    let command = Executable(path: FilePath(path))
-    try await command(arguments: args)
+    guard let url = fileUrl(path, checkExists: true) else {
+      throw Err.noPath(path)
+    }
+    let result = Foundation.Process()
+    result.executableURL = url
+    result.arguments = args
+    try result.run()
   }
 
   static func readFile(_ path: String) async throws -> String {
-    try await contents(of: FilePath(path))
+    guard let url = fileUrl(path) else {
+      throw Err.noUrl(path)
+    }
+    return try String(contentsOf: url)
   }
 
   static func writeFile(path: String, content: String) async throws {
-    try await write(content, to: FilePath(path))
+    try content.write(toFile: path, atomically: true, encoding: .utf8)
   }
 
   static func findExecutable(named name: String) async throws -> String {
-    try await executable(named: name).path.string
+    func byUrl(_ path: String) -> String? {
+      guard let url = fileUrl(path, checkExists: true) else {
+        return nil
+      }
+      if #available(macOS 13.0, *) {
+        return url.path(percentEncoded: false)
+      } else {
+        return url.pathComponents.joined(separator: "/")
+      }
+    }
+    if let result = byUrl(name) {
+      return result
+    }
+    guard let path = ProcessInfo.processInfo.environment["PATH"] else {
+      throw Err.noPath(name)
+    }
+    let roots = path.split(whereSeparator: {
+      //":" == $0
+        58 == $0.asciiValue
+    }).map({ss in String(ss)})
+    for root in roots {
+      if let result = byUrl("\(root)/\(name)") {
+        return result
+      }
+    }
+    throw Err.notOnPath(name)
   }
 
   static func fileStatus(_ path: String) -> Bool? {
@@ -72,6 +104,25 @@ enum FoundationScript {
       return isDir.boolValue
     }
     return nil
+  }
+
+  static func fileUrl(
+    _ path: String,
+    checkExists: Bool = false
+  ) -> URL? {
+    guard !checkExists || false == fileStatus(path) else {
+      return nil
+    }
+    if #unavailable(macOS 13.0) {
+      return NSURL(fileURLWithPath: path).absoluteURL
+    } else {
+      return URL(filePath: path)
+    }
+  }
+  enum Err: Error {
+    case noUrl(_ path: String)
+    case noPath(_ tool: String)
+    case notOnPath(_ tool: String)
   }
 }
 
