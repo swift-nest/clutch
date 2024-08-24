@@ -1,5 +1,6 @@
 import Foundation  // Date, FileManager, ProcessInfo, URL; contains, fputs, range
-import Script
+import SystemPackage
+
 
 /// Given script, run executable from nest
 /// after creating, updating, and/or building as needed.
@@ -10,30 +11,47 @@ import Script
 /// If two, then the second suffix is the name of the nest (e.g., `MyNest`).
 /// The nest package is in `HOME/git/Nest` or `HOME/git/MyNest`.
 /// Script and nest name should be valid module names (identifiers).
-@main public struct Clatch: Script {
+@main public struct Clatch {
+
   private static let name = "clatch"
+  
+  public static func main() async  {
+    let args = Array(ProcessInfo.processInfo.arguments[1...])
+    if "--help" == args.first {
+      let help = "\(name) script{.Nest} {arg}... # Run script built in Nest\n"
+      SysCalls.printErr(help)
+      return
+    }
+    do {
+      var me = Clatch()
+      me.args = args
+      try await me.run()
+    } catch {
+      // TODO: errors seem to be already printed - verify
+      if "" == "duplicating output" {
+        let args = ProcessInfo.processInfo.arguments
+        SysCalls.printErr("# \(name) error running \(args)\n\(error)")
+      }
+    }
+  }
+
   public init() {}
 
-  @Argument(
-    parsing: .captureForPassthrough,
-    help: "Script full path and any run arguments"
-  )
   var args: [String] = []
-
   public func run() async throws {
 
     // Exit with error
-    func errExit(_ err: String) -> Never {
+    func errExit(_ err: String) throws -> Never {
       fputs("\(err)\n", stderr)
       enum Err: Error {
         case err(String)
       }
-      Self.exit(withError: Err.err(err))
+      try SysCalls.exit(withError: Err.err(err))
     }
     guard !args.isEmpty, let first = args.first,
       let peer = Peer.make(from: first)
     else {
-      errExit("\(Self.name) {scriptFile}")
+      try errExit("\(Self.name) {scriptFile}")
     }
 
     // capture stage traces and dump on error
@@ -50,11 +68,11 @@ import Script
     trace("peer: \(peer)")
     switch peer.stage {
     case .noScript:
-      errExit("No script")
+      try errExit("No script")
     case .create:
       trace("create manifest in: \(peer.nestPath.string)")
       guard try await Manifest.update(peer: peer) else {
-        errExit("Unable to update manifest")
+        try errExit("Unable to update manifest")
       }  // hmm: do manifest and new-source at same time?
       let peerSourceDir = peer.sourcePath.removingLastComponent().string
       trace("create dir in: \(peerSourceDir)")
@@ -65,7 +83,7 @@ import Script
       fallthrough
     case .update:
       trace("read script in: \(peer.scriptPath.string)")
-      let script = try await contents(of: peer.scriptPath)
+      let script = try SysCalls.readFile(peer.scriptPath.string)
       var path = peer.sourcePath
       if script.contains("@main") {
         path = peer.sourcePath.removingLastComponent().appending(
@@ -73,7 +91,7 @@ import Script
         )
       }
       trace("Write peer to: \(path.string)")
-      try await write("//\(script)", to: path)
+      try SysCalls.writeFile(path: path.string, content: "//\(script)")
       fallthrough
     case .build:
       var args = [
@@ -88,15 +106,70 @@ import Script
         args += ["-c", "debug"]
       #endif
       trace("swift \(args)")
-      try await execute("swift", arguments: args)
+      // TODO: Path to swift?
+      try SysCalls.runProcess("swift", args: args)
       fallthrough
     case .run:
       let toolArgs = args[1...].map { String($0) }
       trace("\(peer.name) \(toolArgs)")
-      let tool = Executable(path: peer.binaryPath)
-      try await tool(arguments: toolArgs)
+      try SysCalls.runProcess(peer.binaryPath.string, args: toolArgs)
     }
     completedNormally = true
+  }
+}
+enum SysCalls {
+  static func printErr(_ message: String) {
+    fputs(message, stderr)  // Darwin
+  }
+  static func exit(withError: any Error) throws -> Never {
+    enum ExitErr: Error { case withErr(_ err: any Error)}
+    throw ExitErr.withErr(withError)
+  }
+  static func readFile(_ path: String) throws -> String {
+    guard let url = fileUrl(path) else {
+      throw Err.noUrl(path)
+    }
+    return try String(contentsOf: url)
+  }
+
+  static func writeFile(path: String, content: String) throws {
+    try content.write(toFile: path, atomically: true, encoding: .utf8)
+  }
+
+  static func runProcess(_ path: String, args: [String]) throws {
+    guard let url = fileUrl(path, checkExists: true) else {
+      throw Err.noPath(path)
+    }
+    let result = Foundation.Process()
+    result.executableURL = url
+    result.arguments = args
+    try result.run()
+  }
+
+  private static func fileUrl(
+    _ path: String,
+    checkExists: Bool = false
+  ) -> URL? {
+    guard !checkExists || false == fileStatus(path) else {
+      return nil
+    }
+    if #unavailable(macOS 13.0) {
+      return NSURL(fileURLWithPath: path).absoluteURL
+    } else {
+      return URL(filePath: path)
+    }
+  }
+
+  private static func fileStatus(_ path: String) -> Bool? {
+    var isDir: ObjCBool = false
+    if FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
+      return isDir.boolValue
+    }
+    return nil
+  }
+  enum Err: Error {
+    case noUrl(_ path: String)
+    case noPath(_ path: String)
   }
 }
 
@@ -106,11 +179,11 @@ enum Manifest {
       return false
     }
     let manifest = peer.nestPath.appending("Package.swift")
-    let code = try await contents(of: manifest)
+    let code = try SysCalls.readFile(manifest.string)
     guard let newCode = seekAdd(peer: peer.name, nest: nest, code: code) else {
       return false
     }
-    try await write(newCode, to: manifest)
+    try SysCalls.writeFile(path: manifest.string, content: newCode)
     return true
   }
 
