@@ -1,7 +1,7 @@
 import ArgumentParser
 import Foundation  // urk - arg parser is balking on --init
-import Script
 import clutchLib
+import SystemPackage
 
 typealias ModuleName = DriverConfig.ModuleName
 
@@ -19,7 +19,7 @@ typealias ModuleName = DriverConfig.ModuleName
 /// - untested interface
 /// - unclear motivation - superior interface?
 ///     - not defaulting to run-peer on non-file arg
-@main struct ClutchAP: Script, AsyncParsableCommand {
+@main struct ClutchAP: AsyncParsableCommand {
   private typealias Drive = ClutchDriver
   public static var configuration: CommandConfiguration {
     CommandConfiguration(
@@ -54,7 +54,7 @@ typealias ModuleName = DriverConfig.ModuleName
 
 // MARK: Nest commands
 extension ClutchAP {
-  struct NestDir: Script {
+  struct NestDir: ParsableCommand {
     public static let configuration = APHelp.config(
       "dir",
       abstract: "Emits path of nest directory to stdout",
@@ -73,7 +73,7 @@ extension ClutchAP {
     }
   }
 
-  struct NestPeers: Script {
+  struct NestPeers: ParsableCommand {
     public static let configuration = APHelp.config(
       "peers",
       abstract: "Emit nest peers to stdout",
@@ -105,7 +105,7 @@ extension ClutchAP {
 
   /// Default action to run script after building as needed
   ///
-  struct BuildRunScript: Script {  // Shell works here
+  struct BuildRunScript: ParsableCommand {  // Shell works here
     typealias AskKind = DriverConfig.UserAskKind
     public static let configuration = APHelp.config(
       "build/run",
@@ -131,9 +131,10 @@ extension ClutchAP {
 
       let scriptItem: NestItem
       let peer: ModuleName
+      let cwd: FilePath = "."
       let ask = AskKind.readScript(
         script: script,
-        cwd: workingDirectory,
+        cwd: cwd,
         sysCalls: driver.sysCalls
       )
       switch ask {
@@ -188,7 +189,7 @@ extension ClutchAP {
     }
   }
 
-  struct PeerCat: Script {
+  struct PeerCat: ParsableCommand {
     public static let configuration = APHelp.config(
       "cat",
       abstract: "Emit peer source to stdout",
@@ -224,7 +225,7 @@ extension ClutchAP {
     }
   }
 
-  struct PeerPath: Script {
+  struct PeerPath: ParsableCommand {
     public static let configuration = APHelp.config(
       "path",
       abstract: "Emit path of peer source to stdout",
@@ -248,7 +249,7 @@ extension ClutchAP {
     }
   }
 
-  struct PeerRun: Script {
+  struct PeerRun: ParsableCommand {
     public static let configuration = APHelp.config(
       "run",
       abstract: "Run peer with optional args",
