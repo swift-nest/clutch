@@ -2,8 +2,8 @@ import clutchLib
 import Foundation
 
 @main public struct Main {
-  public static func main() {
+  public static func main() async {
     let args = ProcessInfo.processInfo.arguments
-    ClutchDriver.main(args: args)
+    await ClutchDriver.main(args: Array(args[1...]))
   }
 }
