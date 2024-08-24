@@ -6,6 +6,15 @@ let name = "clutch"
 let clatch = "clatch"
 let clutchArgParser = "ClutchAP"
 
+func apple(
+  _ package: String,
+  _ version: String
+) -> PackageDescription.Package.Dependency {
+  .package(
+    url: "https://github.com/apple/\(package)",
+    from: Version(stringLiteral: version)
+  )
+}
 let settings: [SwiftSetting] = [
   .enableUpcomingFeature("ExistentialAny"),
   .enableUpcomingFeature("FullTypedThrows"),  // SE-0413
@@ -22,19 +31,16 @@ let package = Package(
     .executable(name: clutchArgParser, targets: [clutchArgParser]),
   ],
   dependencies: [
-    .package(
-      url: "https://github.com/GeorgeLyon/Shwift.git",
-      from: Version(stringLiteral: "3.1.1")
-    ),
-    .package(
-      url: "https://github.com/apple/swift-atomics.git",
-      from: Version(stringLiteral: "1.2.0")
-    ),
+    apple("swift-atomics", "1.2.0"),
+    apple("swift-system", "1.2.2"),
+    apple("swift-argument-parser", "1.5.0"),
   ],
   targets: [
     .target(
       name: "\(name)Lib",
-      dependencies: [.product(name: "Script", package: "Shwift")],
+      dependencies: [
+        .product(name: "SystemPackage", package: "swift-system"),
+      ],
       path: "Sources/\(name)"
     ),
     .executableTarget(  // RUN:clutch
@@ -44,11 +50,16 @@ let package = Package(
     ),
     .executableTarget(
       name: clutchArgParser,
-      dependencies: [.target(name: "\(name)Lib")]
+      dependencies: [
+        .target(name: "\(name)Lib"),
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+      ]
     ),
     .executableTarget(
       name: clatch,
-      dependencies: [.product(name: "Script", package: "Shwift")]
+      dependencies: [
+        .product(name: "SystemPackage", package: "swift-system"),
+      ]
     ),
     .testTarget(
       name: "\(name)Tests",
@@ -58,6 +69,6 @@ let package = Package(
       ]
     ),
   ],
-  swiftLanguageVersions: [.v6]  // 7/13/24
-  //swiftLanguageModes: [.v6] // 7/31/24
+  swiftLanguageModes: [.v6]
 )
+
