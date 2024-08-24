@@ -62,15 +62,7 @@
 
         verbose("Running \(suffix)")
         // parse to avoid fatal error trying to run directly
-        let command = try ClutchTestMain.parseAsRoot(scriptArgs)
-        guard let main = command as? ClutchTestMain else {
-          let fail = "Unable to get command for \(name)"
-          verbose(fail)
-          XCTFail(fail)
-          continue
-        }
-        // Script has non-async run() to init Shell, streams, and async context
-        try main.run()
+        try ClutchTestMain.mainPeek(args: scriptArgs)
         verbose("Done with \(suffix)")
       }
     }

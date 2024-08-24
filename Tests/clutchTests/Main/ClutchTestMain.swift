@@ -1,9 +1,9 @@
 // workaround linux ld error d/t 2 main's in merged test+main module (?)
 #if canImport(ObjectiveC)
 
-  import Script
-
   @testable import clutchLib
+  import Foundation
+  import SystemPackage
 
   extension FoundationScriptSystemCalls: SystemCallsSendable {}
 
@@ -17,11 +17,21 @@
   /// - But we want the recording implementation only in tests
   /// - So we create a separate main wrapper in tests
   /// - Long-term, it's better to have wrapping configuration here anyway
-  @main struct ClutchTestMain: Script {
+  @main struct ClutchTestMain {
+    public static func main() throws {
+      let args = ProcessInfo.processInfo.arguments
+      try mainPeek(args: args)
+    }
 
-    @Argument(help: ArgumentHelp("", visibility: .private))
+    public static func mainPeek(args: [String]) throws {
+      Task {
+        var me = ClutchTestMain()
+        me.args = args
+        try await me.run()
+      }
+    }
+
     var args: [String] = []
-    @Flag
     var wrap: Bool = false
 
     func run() async throws {
@@ -34,7 +44,7 @@
         wrapped = RecordSystemCalls(delegate: sysCalls)
         stripHome = sysCalls.seekEnv(.HOME) ?? ""
       }
-      let cwd = workingDirectory
+      let cwd: FilePath = "."
       let (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: wrapped)
       var err: Error? = nil
       do {
