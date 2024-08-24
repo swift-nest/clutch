@@ -6,14 +6,12 @@ public typealias AskData = DriverConfig.UserAskKind
 public typealias AskMode = DriverConfig.AskMode
 
 public struct ClutchDriver {
-  public static func main(args: [String]) {
-    Task {
-      do {
-        try await runMain(cwd: ".", args: args)
-      } catch {
-        let err = "# Error running clutch \(args)\n\(error)"
-        FoundationScriptSystemCalls().printErr(err)
-      }
+  public static func main(args: [String]) async {
+    do {
+      try await runMain(cwd: ".", args: args)
+    } catch {
+      let err = "# Error running clutch \(args)\n\(error)"
+      FoundationScriptSystemCalls().printErr(err)
     }
   }
 
