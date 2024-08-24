@@ -1,4 +1,3 @@
-import Script
 import XCTest
 import clutchLib
 
@@ -19,19 +18,15 @@ final class FoundationScriptTests: XCTestCase {
     srcLoc.ok(nil != kv[home], home)
     srcLoc.ok(nil != kv[path], path)
   }
-  public func testBlindly() {
-    guard var command = try? Blind.parseAsRoot([]) else {
-      XCTFail("no command")
-      return
-    }
+  public func testBlindly() async {
     do {
-      try command.run()  // Script sync wrapper for async
+      try await Blind().run()  // Script sync wrapper for async
     } catch {
       print("erro: \(error)")
       XCTFail("\(error)")
     }
   }
-  struct Blind: Script {
+  struct Blind {
     func run() async throws {
       try await FoundationScriptTests.checkBlindly()
     }
