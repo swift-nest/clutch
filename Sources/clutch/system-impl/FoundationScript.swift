@@ -88,8 +88,8 @@ enum FoundationScript {
     }
     let roots = path.split(whereSeparator: {
       //":" == $0
-        58 == $0.asciiValue
-    }).map({ss in String(ss)})
+      58 == $0.asciiValue
+    }).map({ ss in String(ss) })
     for root in roots {
       if let result = byUrl("\(root)/\(name)") {
         return result
@@ -119,6 +119,7 @@ enum FoundationScript {
       return URL(filePath: path)
     }
   }
+
   enum Err: Error {
     case noUrl(_ path: String)
     case noPath(_ tool: String)

@@ -7,7 +7,6 @@
 // s6/SE-0364 permits fully-qualified-names to work for retroactive
 extension SystemPackage.FilePath: @unchecked Swift.Sendable {}
 
-
 public protocol FileKey: Hashable, Sendable {
   var str: String { get }  // TODO: rename
 }
