@@ -39,7 +39,7 @@ let package = Package(
     .target(
       name: "\(name)Lib",
       dependencies: [
-        .product(name: "SystemPackage", package: "swift-system"),
+        .product(name: "SystemPackage", package: "swift-system")
       ],
       path: "Sources/\(name)"
     ),
@@ -58,7 +58,7 @@ let package = Package(
     .executableTarget(
       name: clatch,
       dependencies: [
-        .product(name: "SystemPackage", package: "swift-system"),
+        .product(name: "SystemPackage", package: "swift-system")
       ]
     ),
     .testTarget(
@@ -71,4 +71,3 @@ let package = Package(
   ],
   swiftLanguageModes: [.v6]
 )
-

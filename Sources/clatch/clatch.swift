@@ -1,7 +1,6 @@
 import Foundation  // Date, FileManager, ProcessInfo, URL; contains, fputs, range
 import SystemPackage
 
-
 /// Given script, run executable from nest
 /// after creating, updating, and/or building as needed.
 ///
@@ -14,8 +13,8 @@ import SystemPackage
 @main public struct Clatch {
 
   private static let name = "clatch"
-  
-  public static func main() async  {
+
+  public static func main() async {
     let args = Array(ProcessInfo.processInfo.arguments[1...])
     if "--help" == args.first {
       let help = "\(name) script{.Nest} {arg}... # Run script built in Nest\n"
@@ -122,7 +121,7 @@ enum SysCalls {
     fputs(message, stderr)  // Darwin
   }
   static func exit(withError: any Error) throws -> Never {
-    enum ExitErr: Error { case withErr(_ err: any Error)}
+    enum ExitErr: Error { case withErr(_ err: any Error) }
     throw ExitErr.withErr(withError)
   }
   static func readFile(_ path: String) throws -> String {

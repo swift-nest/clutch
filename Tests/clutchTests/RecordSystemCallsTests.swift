@@ -68,7 +68,7 @@ final class RecordSystemCallsTests: XCTestCase {
     let homeStatus = sysCalls.seekFileStatus(homeDir)  // 5 fileStatus
     H.ea(.dir, homeStatus, "HOME status")
     if "" == "" {
-      return // comment to run flaky tests
+      return  // comment to run flaky tests
     }
 
     // ------ Assess recordings TODO: Flaky b/c async
@@ -96,12 +96,12 @@ final class RecordSystemCallsTests: XCTestCase {
     }
     let m: String
     if max < expCalls.count {
-      let slice = Array(expCalls[max...].map{"\($0.fun.name): \($0.call)"})
+      let slice = Array(expCalls[max...].map { "\($0.fun.name): \($0.call)" })
       m = "Missed calls:\n- \(slice.joined(separator: "\n- "))"
     } else if max < lines.count {
       m = "Extra calls:\n-\(lines[max...].joined(separator: "\n-"))"
     } else {
-      return // no error
+      return  // no error
     }
     XCTFail(m)
   }

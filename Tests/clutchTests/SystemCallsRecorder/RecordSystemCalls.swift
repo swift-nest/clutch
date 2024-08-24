@@ -330,12 +330,12 @@ enum RenderSystemCallRecord {
 
   // ----------------------------------- SystemCalls Record -> String
   // TODO: @Sendable only required before tools-6.0 (s6:transition)
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func createDir(_ record: SCRec.createDir) -> String {
     SH.strParm(record.def, record.frame.parms)
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func environment(_ record: SCRec.environment) -> String {
     let (def, frame) = (record.def, record.frame)
     let p = "\(def.parmNames[0])=\(frame.parms)"
@@ -346,7 +346,7 @@ enum RenderSystemCallRecord {
     return "\(record.def.name)(\(p)) -> \(result)"
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func fileStatus(_ record: SCRec.fileStatus) -> String {
     let call = SH.strParm(record.def, record.frame.parms)
     let frame = record.frame
@@ -357,7 +357,7 @@ enum RenderSystemCallRecord {
     return "\(call)\(result)"
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func findExecutable(_ record: SCRec.findExecutable) -> String {
     let call = SH.strParm(record.def, record.frame.parms)
     let frame = record.frame
@@ -366,7 +366,7 @@ enum RenderSystemCallRecord {
     return "\(call)\(result)"
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func lastModified(
     _ record: SCRec.lastModified
   ) -> String {
@@ -376,7 +376,7 @@ enum RenderSystemCallRecord {
     return "\(call)\(result)"
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func now(_ record: SCRec.now) -> String {
     let call = "\(record.def.name)()"
     let frame = record.frame
@@ -385,17 +385,17 @@ enum RenderSystemCallRecord {
     return "\(call)\(result)"
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func printErr(_ record: SCRec.printErr) -> String {
     SH.strParm(record.def, record.frame.parms)
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func printOut(_ record: SCRec.printOut) -> String {
     SH.strParm(record.def, record.frame.parms)
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func readFile(_ record: SCRec.readFile) -> String {
     let call = SH.strParm(record.def, record.frame.parms)
     let frame = record.frame
@@ -404,7 +404,7 @@ enum RenderSystemCallRecord {
     return "\(call)\(result)"
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func writeFile(_ record: SCRec.writeFile) -> String {
     let def = record.def
     let path = record.frame.parms.0
@@ -416,7 +416,7 @@ enum RenderSystemCallRecord {
     return call
   }
 
-  @Sendable // s6:Transition
+  @Sendable  // s6:Transition
   static func runProcess(_ record: SCRec.runProcess) -> String {
     let def = record.def
     let execPath = record.frame.parms.0

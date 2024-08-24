@@ -1,5 +1,5 @@
-import clutchLib
 import Foundation
+import clutchLib
 
 @main public struct Main {
   public static func main() async {
