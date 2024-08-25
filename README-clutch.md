@@ -87,6 +87,7 @@
 
 ### Missing features, possible bugs
 - automate user workarounds
+- P1 Test code fails Swift-6 checking on Linux
 - P2 Silence ErrParts on build errors since common and not an error
 - P2 Script/Shwift error text and exit code:
     - On process failure, Script adds `error: fatalError` to stderr stream
