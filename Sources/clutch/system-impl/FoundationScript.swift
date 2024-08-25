@@ -1,7 +1,9 @@
+// @preconcurrency: on Linux, stderr flagged as mutable static
 // Date FileManager fputs LocalizedError ObjcBool ProcessInfo  URLResourceKey
-import Foundation
+@preconcurrency import Foundation
 
 typealias FS = FoundationScript
+
 /// Delegate for ``SystemCalls`` depending on Foundation and Script.
 ///
 /// TODO: printOut add a newline, but printErr does not
@@ -62,7 +64,7 @@ enum FoundationScript {
     guard let url = fileUrl(path) else {
       throw Err.noUrl(path)
     }
-    return try String(contentsOf: url)
+    return try String(contentsOf: url, encoding: .utf8)
   }
 
   static func writeFile(path: String, content: String) async throws {
@@ -103,23 +105,23 @@ enum FoundationScript {
   }
 
   private static func urlString(_ url: URL) -> String {
-  	#if os(Linux)
-	return url.path
-	#else
-	return url.path(percentEncoded: false)
-  	#endif
+    #if os(Linux)
+      return url.path
+    #else
+      return url.path(percentEncoded: false)
+    #endif
   }
 
   private static func newFileUrl(_ path: String) -> URL? {
-  	#if os(Linux)
-	return URL(string: "file://\(path)")  	
-	#else
-	if #unavailable(macOS 13.0) {
-      return NSURL(fileURLWithPath: path).absoluteURL
-	} else {
-	  return URL(filePath: path)	
-	}
-  	#endif
+    #if os(Linux)
+      return URL(string: "file://\(path)")
+    #else
+      if #unavailable(macOS 13.0) {
+        return NSURL(fileURLWithPath: path).absoluteURL
+      } else {
+        return URL(filePath: path)
+      }
+    #endif
   }
 
   static func fileUrl(
