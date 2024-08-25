@@ -44,7 +44,7 @@ final class FoundationScriptTests: XCTestCase {
 
     if true != calls.fileStatus(dirname) {
       calls.printErr("\(prefix) Unable to create dir \(dirname) - exiting")
-	  return
+      return
     }
 
     srcLoc.ea(.dir, calls.seekFileStatus("."), "CWD - status (true==dir)")
@@ -73,18 +73,17 @@ final class FoundationScriptTests: XCTestCase {
     } catch {
       err = error
     }
- 
+
     // ------------- bash-dependent code
     let bash = try? await calls.findExecutable(named: "bash")
     srcLoc.ok(nil != bash, "bash")
     guard let bash else {
-    	calls.printOut("\(prefix): no bash, exiting")
-    	if let err = err {
-    	  throw err
-    	}
-    	return
+      calls.printOut("\(prefix): no bash, exiting")
+      if let err = err {
+        throw err
+      }
+      return
     }
- 
 
     calls.printOut("\(prefix) Running bash")
     try await calls.runProcess(bash, args: ["-c", "echo \"\(prefix) bash\""])
