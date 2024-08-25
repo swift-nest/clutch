@@ -144,6 +144,27 @@ enum SysCalls {
     result.arguments = args
     try result.run()
   }
+  
+  
+  private static func urlString(_ url: URL) -> String {
+  	#if os(Linux)
+	return url.path
+	#else
+	return url.path(percentEncoded: false)
+  	#endif
+  }
+
+  private static func newFileUrl(_ path: String) -> URL? {
+  	#if os(Linux)
+	return URL(string: "file://\(path)")  	
+	#else
+	if #unavailable(macOS 13.0) {
+      return NSURL(fileURLWithPath: path).absoluteURL
+	} else {
+	  return URL(filePath: path)	
+	}
+  	#endif
+  }
 
   private static func fileUrl(
     _ path: String,
@@ -152,11 +173,7 @@ enum SysCalls {
     guard !checkExists || false == fileStatus(path) else {
       return nil
     }
-    if #unavailable(macOS 13.0) {
-      return NSURL(fileURLWithPath: path).absoluteURL
-    } else {
-      return URL(filePath: path)
-    }
+    return newFileUrl(path)
   }
 
   private static func fileStatus(_ path: String) -> Bool? {
