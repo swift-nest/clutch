@@ -172,7 +172,7 @@ final class DriverTests: XCTestCase {
   ///
   /// Does not test combinations of settings, where priority would matter.
   @MainActor
-  public func testFindNest() {
+  public func testFindNest() async {
     let sc = fixtures.newScenario(.nest(.dir))
     typealias EnvVal = (name: EnvName, value: String)
     typealias Config = ([EnvVal]) -> Void
