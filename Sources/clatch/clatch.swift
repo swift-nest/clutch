@@ -1,6 +1,11 @@
 // @preconcurrency: on Linux, stderr flagged as mutable static
-// Date, FileManager, ProcessInfo, URL; contains, fputs, range
+#if os(Linux)
 @preconcurrency import Foundation
+#else
+// Date, FileManager, ProcessInfo, URL; contains, fputs, range
+import Foundation
+#endif
+
 import SystemPackage
 
 /// Given script, run executable from nest
@@ -146,13 +151,16 @@ enum SysCalls {
     result.arguments = args
     try result.run()
   }
-
   private static func urlString(_ url: URL) -> String {
-    #if os(Linux)
-      return url.path
-    #else
+#if os(Linux)
+    return url.path
+#else
+    if #available(macOS 13.0, *) {
       return url.path(percentEncoded: false)
-    #endif
+    } else {
+      return url.path
+    }
+#endif
   }
 
   private static func newFileUrl(_ path: String) -> URL? {

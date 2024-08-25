@@ -1,6 +1,10 @@
 // @preconcurrency: on Linux, stderr flagged as mutable static
-// Date FileManager fputs LocalizedError ObjcBool ProcessInfo  URLResourceKey
+#if os(Linux)
 @preconcurrency import Foundation
+#else
+// Date FileManager fputs LocalizedError ObjcBool ProcessInfo  URLResourceKey
+import Foundation
+#endif
 
 typealias FS = FoundationScript
 
@@ -105,11 +109,15 @@ enum FoundationScript {
   }
 
   private static func urlString(_ url: URL) -> String {
-    #if os(Linux)
+#if os(Linux)
       return url.path
-    #else
+#else
+    if #available(macOS 13.0, *) {
       return url.path(percentEncoded: false)
-    #endif
+    } else {
+      return url.path
+    }
+#endif
   }
 
   private static func newFileUrl(_ path: String) -> URL? {
