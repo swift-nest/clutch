@@ -40,12 +40,14 @@ final class FoundationScriptTests: XCTestCase {
     let prefix = "# FoundationScriptTests.\(#function) "
     let calls = FoundationScriptSystemCalls()
 
-    try calls.createDir("\(dirname)")
+    try calls.createDir(dirname)
+
+    if true != calls.fileStatus(dirname) {
+      calls.printErr("\(prefix) Unable to create dir \(dirname) - exiting")
+	  return
+    }
 
     srcLoc.ea(.dir, calls.seekFileStatus("."), "CWD - status (true==dir)")
-
-    let bash = try? await calls.findExecutable(named: "bash")
-    srcLoc.ok(nil != bash, "bash")
 
     srcLoc.ok(nil != calls.lastModified("."), "CWD - last modified")
 
@@ -55,27 +57,45 @@ final class FoundationScriptTests: XCTestCase {
 
     calls.printOut("\(prefix) printOut")
 
-    if let bash = bash {
-      try await calls.runProcess(bash, args: ["-c", "echo \"\(prefix) bash\""])
-    }
-
     let path = FilePath(dirname).appending(filename).string
     let content = filename
 
     var err: (any Error)? = nil
     do {
+      calls.printOut("Writing \(path) with \(content.count) characters")
       try await calls.writeFile(path: path, content: content)
+      calls.printOut("Wrote \(path) - trying to read")
 
       let result = try await calls.readFile(path)
+      calls.printOut("Read \(path)")
 
       srcLoc.ea(content, result, "write+read file")
-      print("wrote \(path)")
     } catch {
       err = error
     }
-    if let bash = bash, !dirname.isEmpty, !dirname.hasPrefix(".") {
-      try await calls.runProcess(bash, args: ["-c", "rm -rf \"\(dirname)\""])
+ 
+    // ------------- bash-dependent code
+    let bash = try? await calls.findExecutable(named: "bash")
+    srcLoc.ok(nil != bash, "bash")
+    guard let bash else {
+    	calls.printOut("\(prefix): no bash, exiting")
+    	if let err = err {
+    	  throw err
+    	}
+    	return
     }
+ 
+
+    calls.printOut("\(prefix) Running bash")
+    try await calls.runProcess(bash, args: ["-c", "echo \"\(prefix) bash\""])
+
+    if nil == err, !dirname.isEmpty, !dirname.hasPrefix(".") {
+      calls.printOut("\(prefix): using bash to delete temp dir \(dirname)")
+      try await calls.runProcess(bash, args: ["-c", "rm -rf \"\(dirname)\""])
+    } else {
+      calls.printOut("\(prefix): leaving temp dir \(dirname)")
+    }
+
     if let err = err {
       throw err
     }
