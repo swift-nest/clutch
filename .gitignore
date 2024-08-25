@@ -8,3 +8,4 @@
 xcuserdata/
 .swiftpm/
 /xunit-output.xml
+FSSystemCallsTests.tmp/
