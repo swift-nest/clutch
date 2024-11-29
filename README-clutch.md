@@ -151,5 +151,6 @@
 - version (command, help string; update as part of tagging)
 - git practices/policies
 - contributor guidelines - default
+- `@main` in test causes duplicate symbols in language mode 5
 
 </details>

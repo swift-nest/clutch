@@ -32,7 +32,7 @@ let package = Package(
   ],
   dependencies: [
     apple("swift-atomics", "1.2.0"),
-    apple("swift-system", "1.2.2"),
+    apple("swift-system", "1.4.0"),
     apple("swift-argument-parser", "1.5.0"),
   ],
   targets: [
