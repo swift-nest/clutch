@@ -66,8 +66,14 @@ let package = Package(
       dependencies: [
         .target(name: "\(name)Lib"),
         .product(name: "Atomics", package: "swift-atomics"),
-      ]
+      ],
+      // Avoid duplicate main's (in clutch-tool/ and clutchTests/Main/)
+      // We drive ClutchTestMain from ClutchMainTest in test harness.
+      swiftSettings: [.unsafeFlags([
+        "-Xfrontend", "-entry-point-function-name",
+        "-Xfrontend", "ignoreMain",
+      ])]
     ),
   ],
-  swiftLanguageModes: [.v6]
+  swiftLanguageModes: [.v5]
 )
