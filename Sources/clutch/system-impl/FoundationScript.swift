@@ -62,6 +62,7 @@ enum FoundationScript {
     result.executableURL = url
     result.arguments = args
     try result.run()
+    result.waitUntilExit()
   }
 
   static func readFile(_ path: String) async throws -> String {
