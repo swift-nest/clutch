@@ -1,9 +1,6 @@
-import XCTest
-import clutchLib
-
-import struct SystemPackage.FilePath
-
 @testable import clutchLib
+import struct SystemPackage.FilePath
+import XCTest
 
 /// Run actual SystemCalls delegate (without really checking)
 ///
@@ -60,7 +57,7 @@ final class FoundationScriptTests: XCTestCase {
     let path = FilePath(dirname).appending(filename).string
     let content = filename
 
-    var err: (any Error)? = nil
+    var err: (any Error)?
     do {
       calls.printOut("Writing \(path) with \(content.count) characters")
       try await calls.writeFile(path: path, content: content)

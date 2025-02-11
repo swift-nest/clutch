@@ -5,6 +5,7 @@ import XCTest
 enum TestHelper {
   static let inCI = nil != FoundationScript.environment("CLUTCH_CI")
   static let quiet = true
+  static let runFlaky = nil != FoundationScript.environment("CLUTCH_FLAKY")
   typealias SrcLoc = (file: StaticString, line: UInt)
   static func loc(
     _ file: StaticString = #filePath,

@@ -1,9 +1,6 @@
-import XCTest
-import clutchLib
-
 import struct SystemPackage.FilePath
-
 @testable import clutchLib
+import XCTest
 
 /// Integration test all normal/positive scenarios, some error scenarios and effects,
 /// and nest-finding combinations.

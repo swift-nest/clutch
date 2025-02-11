@@ -1,5 +1,4 @@
 import XCTest
-import clutchLib
 
 import struct SystemPackage.FilePath
 
@@ -7,8 +6,8 @@ import struct SystemPackage.FilePath
 
 
 final class ClutchMainTest: XCTestCase {
-  static let quiet = "" == "" && !TestHelper.inCI
-  static let prefix = "" == ""
+  static let quiet = TestHelper.quiet && !TestHelper.inCI
+  static let prefix = true
   func verbose(_ s: String) {
     if !Self.quiet {
       print(Self.prefix ? "# CMT \(s)" : s)

@@ -67,7 +67,7 @@ final class RecordSystemCallsTests: XCTestCase {
 
     let homeStatus = sysCalls.seekFileStatus(homeDir)  // 5 fileStatus
     H.ea(.dir, homeStatus, "HOME status")
-    if "" == "" {
+    if !TestHelper.runFlaky {
       return  // comment to run flaky tests
     }
 

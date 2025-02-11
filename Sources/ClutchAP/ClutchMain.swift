@@ -1,7 +1,7 @@
 import ArgumentParser
+import clutchLib
 import Foundation  // urk - arg parser is balking on --init
 import SystemPackage
-import clutchLib
 
 typealias ModuleName = DriverConfig.ModuleName
 
@@ -19,7 +19,8 @@ typealias ModuleName = DriverConfig.ModuleName
 /// - untested interface
 /// - unclear motivation - superior interface?
 ///     - not defaulting to run-peer on non-file arg
-@main struct ClutchAP: AsyncParsableCommand {
+@main
+struct ClutchAP: AsyncParsableCommand {
   private typealias Drive = ClutchDriver
   public static var configuration: CommandConfiguration {
     CommandConfiguration(

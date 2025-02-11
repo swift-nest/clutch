@@ -10,7 +10,8 @@ extension FoundationScriptSystemCalls: SystemCallsSendable {}
 ///
 /// Limitations
 /// - `@main` dups test driver symbol, so have to rename in Package.swift
-@main struct ClutchTestMain {
+@main
+struct ClutchTestMain {
   public static func main() throws {
     let args = ProcessInfo.processInfo.arguments
     try mainPeek(args: args)
@@ -43,7 +44,7 @@ extension FoundationScriptSystemCalls: SystemCallsSendable {}
     }
     let cwd: FilePath = "."
     let (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: wrapped)
-    var err: Error? = nil
+    var err: Error?
     do {
       try await ClutchDriver.runAsk(
         sysCalls: wrapped,

@@ -1,7 +1,5 @@
 import clutchLib
-
 import struct SystemPackage.FilePath
-import protocol clutchLib.SystemCalls
 
 /// Record calls and results passed to SystemCalls delegate.
 ///
@@ -312,8 +310,7 @@ extension RecordSystemCalls {
     let record = makeRecord(p, r)
     let index = index.next()
     let s = recorder.render(record)
-    let recording = CallRecord(index, recorder.tag, s)
-    return recording
+    return CallRecord(index, recorder.tag, s)
   }
 }
 

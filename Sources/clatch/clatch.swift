@@ -17,7 +17,8 @@ import SystemPackage
 /// If two, then the second suffix is the name of the nest (e.g., `MyNest`).
 /// The nest package is in `HOME/git/Nest` or `HOME/git/MyNest`.
 /// Script and nest name should be valid module names (identifiers).
-@main public struct Clatch {
+@main
+public struct Clatch {
 
   private static let name = "clatch"
 

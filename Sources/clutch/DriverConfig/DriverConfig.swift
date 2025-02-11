@@ -13,7 +13,7 @@ public enum DriverConfig {
     _ nestNameFromScript: String?,
     using clutchSystem: SystemCalls
   ) -> FoundNest? {
-    var error: String? = nil
+    var error: String?
     let seeker = FileItemSeeker(systemCalls: clutchSystem)
     func envVar(_ key: PeerNest.EnvName) -> String? {
       clutchSystem.seekEnv(key)
