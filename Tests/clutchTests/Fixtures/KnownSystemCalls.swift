@@ -290,13 +290,13 @@ extension KnownSystemCalls {
       fileContent[path] = nil
       fileLastModified[path] = nil
     }
-    if let content = content {
+    if let content {
       fileContent[path] = content
     }
-    if let lastMod = lastMod {
+    if let lastMod {
       fileLastModified[path] = lastMod
     }
-    if let status = status {
+    if let status {
       fileStatus[path] = status.asBool
     }
     return true

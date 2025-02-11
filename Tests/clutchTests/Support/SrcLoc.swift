@@ -112,7 +112,7 @@ extension SrcLoc {
     _ act: T?,
     _ label: @autoclosure () -> String
   ) -> Bool {
-    guard let exp = exp else {
+    guard let exp else {
       return true
     }
     return eaAnd(&rhs, exp, act, label())

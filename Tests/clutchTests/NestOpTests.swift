@@ -104,7 +104,7 @@ final class NestOpTests: XCTestCase {
         nestModuleName: nest,
         packageCode: code
       )
-      if let result = result {
+      if let result {
         for exp in contains {
           XCTAssertTrue(result.contains(exp), "\(i) missing \(exp)")
         }

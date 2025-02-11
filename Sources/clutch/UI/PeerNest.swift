@@ -66,7 +66,7 @@ public struct PeerNest {
       args: ["-c", "debug"] + BuildOptions.QUIET_ARGS
     )
     static func make(_ config: String?) -> Self {
-      guard let config = config, !config.isEmpty else {
+      guard let config, !config.isEmpty else {
         return Self.DEFAULT
       }
       let (debug, args) = parse(config)

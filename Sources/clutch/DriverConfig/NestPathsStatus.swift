@@ -66,7 +66,7 @@ extension DriverConfig.NestPaths {
       seeker.seekFile(.manifest, manifest.string),
       seeker.seekDir(.nestSourcesDir, sourcesDir.string),
     ]
-    guard let debug = debug else {
+    guard let debug else {
       return .init(nestManifestSources)
     }
     let binDir = seeker.seekDir(.nestBinDir, binaryDir(debug: debug).string)
@@ -100,7 +100,7 @@ extension DriverConfig.NestPaths {
         }
       }
     }
-    if let debug = debug {
+    if let debug {
       let bin = binaryDir(debug: debug).appending(peer.name)
       result.append(seeker.seekFile(.executable, bin.string))
     }

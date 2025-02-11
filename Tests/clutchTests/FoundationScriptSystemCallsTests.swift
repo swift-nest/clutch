@@ -79,7 +79,7 @@ final class FoundationScriptTests: XCTestCase {
     srcLoc.ok(nil != bash, "bash")
     guard let bash else {
       calls.printOut("\(prefix): no bash, exiting")
-      if let err = err {
+      if let err {
         throw err
       }
       return
@@ -95,7 +95,7 @@ final class FoundationScriptTests: XCTestCase {
       calls.printOut("\(prefix): leaving temp dir \(dirname)")
     }
 
-    if let err = err {
+    if let err {
       throw err
     }
   }

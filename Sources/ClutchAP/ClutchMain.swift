@@ -173,7 +173,7 @@ extension ClutchAP {
     let peer: ModuleName
     init?(argument: String) {
       let mn = ModuleName.make(argument, into: [.nameOnly, .nameNest])
-      guard let mn = mn else {
+      guard let mn else {
         return nil
       }
       self.peer = mn

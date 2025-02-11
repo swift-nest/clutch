@@ -37,7 +37,7 @@ extension DriverConfig {
       if kind == .nameNest {
         return self
       }
-      guard let nest = nest, nest.kind == .nestOnly else {
+      guard let nest, nest.kind == .nestOnly else {
         return nil
       }
       return .init(.nameNest, name, nest: nest.nest)

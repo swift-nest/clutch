@@ -57,7 +57,7 @@ enum ErrPartCheck: Equatable {
     if exp.isEmpty {
       return nil  // OK? no details in match, just structure
     }
-    if let act = act, act.contains(exp) {
+    if let act, act.contains(exp) {
       return nil
     }
     return Self.expAct(label, exp, act)
@@ -68,7 +68,7 @@ enum ErrPartCheck: Equatable {
     _ act: T?
   ) -> String {
     let prefix = "\(label)\(Self.SEP)exp: \(exp)\(Self.SEP)act: "
-    if let act = act {
+    if let act {
       return "\(prefix)\(act)"
     }
     return "\(prefix)n/a"
@@ -192,7 +192,7 @@ extension EquatableError {
   /// - Parameter rhs: ``EquatableError`` to match
   /// - Returns: nil if matching, or String error otherwise
   func matchError(_ rhs: EquatableError) -> String? {
-    guard let match = match else {
+    guard let match else {
       return "Matching from error"
     }
     guard canMatch else {

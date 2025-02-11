@@ -23,13 +23,7 @@ extension DriverConfig.UserAskKind {
   }
 
   public var peer: ModuleName? {
-    if let askScriptPeer = scriptAskScriptPeer {
-      return askScriptPeer.peer
-    }
-    if let commandPeerAsk = commandPeerAsk {
-      return commandPeerAsk.peer
-    }
-    return nil
+    scriptAskScriptPeer?.peer ?? commandPeerAsk?.peer
   }
 
   public var isNestOnly: Bool {

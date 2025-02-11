@@ -15,7 +15,7 @@ extension DriverConfig {
       return .init(logProgressForUser: logProgressForUser)
     }
     func with(logConfig: String?) -> AskMode {
-      guard let logConfig = logConfig, !logConfig.isEmpty else {
+      guard let logConfig, !logConfig.isEmpty else {
         return self
       }
       return with(logProgressForUser: true)

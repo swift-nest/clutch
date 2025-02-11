@@ -26,7 +26,7 @@ extension ClutchDriver {
         if let hint = fixHint {
           lines += ["    fix: \(hint)"]
         }
-        if let args = args {
+        if let args {
           lines += ["   args: \(args)"]
         }
         return lines.joined(separator: "\n")

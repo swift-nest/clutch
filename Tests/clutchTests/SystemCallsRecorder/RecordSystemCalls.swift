@@ -102,7 +102,7 @@ extension RecordSystemCalls {
         return input
       }
       var result = input
-      if let home = home, !home.isEmpty, let range = result.range(of: home) {
+      if let home, !home.isEmpty, let range = result.range(of: home) {
         result.replaceSubrange(range, with: "HOME")
       }
       if date, let range = result.range(of: "Date(") {

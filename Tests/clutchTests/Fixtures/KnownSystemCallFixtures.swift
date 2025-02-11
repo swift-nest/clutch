@@ -43,10 +43,10 @@ class KnownSystemCallFixtures {
       args: [String]? = nil,
       checks: [Check]? = nil
     ) {
-      if let args = args {
+      if let args {
         self.args = self.args.with(args: args)
       }
-      if let checks = checks {
+      if let checks {
         self.checks = checks
       }
     }

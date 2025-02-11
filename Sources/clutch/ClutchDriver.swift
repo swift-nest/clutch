@@ -313,7 +313,7 @@ public struct ClutchDriver {
   public func findNest(inputNestName input: String?) throws -> NestPaths {
     let nest = DriverConfig.findNest(input, using: sysCalls)
 
-    guard let nest = nest, nest.nest.status.isDir else {
+    guard let nest, nest.nest.status.isDir else {
       throw MakeErr.local.err(
         .dirNotFound(input ?? ""),
         subject: .resource(.nest, input ?? "")

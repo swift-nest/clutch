@@ -251,7 +251,7 @@ final class DriverTests: XCTestCase {
       }
       let driver = ClutchDriver(sysCalls: next, mode: .QUIET)
       let result = try? driver.findNest(inputNestName: test.input)
-      if let result = result {
+      if let result {
         XCTAssertEqual(test.name, result.nestOnly.nest, "name for \(test)")
         XCTAssertEqual(test.path, result.nestDir, "path for \(test)")
       } else {
@@ -299,7 +299,7 @@ final class DriverTests: XCTestCase {
       }
     }
 
-    guard let err = err else {
+    guard let err else {
       // if no error, no error-parts to check.  Missed error reported above.
       return
     }

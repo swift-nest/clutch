@@ -13,7 +13,7 @@ extension ModuleName {
     guard Config.checkIdentifier(name) else {
       return nil
     }
-    if let nest = nest, !nest.isEmpty {
+    if let nest, !nest.isEmpty {
       if Config.checkIdentifier(nest) {
         return valid(.nameNest, name, nest: nest)
       }
