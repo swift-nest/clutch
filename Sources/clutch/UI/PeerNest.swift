@@ -60,10 +60,10 @@ public struct PeerNest {
     #else
       static let QUIET_ARGS: [String] = []
     #endif
-    static let DEFAULT = BuildOptions(
+    static let DEFAULT = Self(
       config: "",
       debug: true,
-      args: ["-c", "debug"] + BuildOptions.QUIET_ARGS
+      args: ["-c", "debug"] + Self.QUIET_ARGS
     )
     static func make(_ config: String?) -> Self {
       guard let config, !config.isEmpty else {
@@ -155,7 +155,7 @@ public struct PeerNest {
   }
 
   struct EnvValues: CustomStringConvertible {
-    static func readAll(from source: EnvName.Source) -> EnvValues {
+    static func readAll(from source: EnvName.Source) -> Self {
       .init(Set(EnvName.allCases), from: source)
     }
 

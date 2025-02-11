@@ -304,7 +304,7 @@ class KnownSystemCallFixtures {
       scriptPath: String? = nil,
       args: [String]? = nil
     ) -> Self {
-      ScenarioArgs(
+      Self(
         module: module ?? self.module,
         nest: nest ?? self.nest,
         scriptPath: scriptPath ?? self.scriptPath,

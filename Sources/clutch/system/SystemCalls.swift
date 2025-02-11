@@ -21,9 +21,9 @@ extension SystemCalls {
 
 /// Like iOS, time in seconds since some consistent reference date
 public struct LastModified: ExpressibleByFloatLiteral, Comparable, Sendable {
-  public static let ZERO = LastModified(floatLiteral: .zero)
+  public static let ZERO = Self(floatLiteral: .zero)
 
-  public static func from(_ value: FloatLiteralType) -> LastModified {
+  public static func from(_ value: FloatLiteralType) -> Self {
     Self(floatLiteral: value)
   }
 

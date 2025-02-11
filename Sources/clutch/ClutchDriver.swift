@@ -32,17 +32,17 @@ public struct ClutchDriver {
     cwd: FilePath,
     args: [String]
   ) async throws {
-    let driver = ClutchDriver(sysCalls: sysCalls, mode: mode)
+    let driver = Self(sysCalls: sysCalls, mode: mode)
     try await driver.runAsk(cwd: cwd, args: args, ask: data)
   }
 
   public static func make(
     logging: Bool? = false
-  ) -> ClutchDriver {
+  ) -> Self {
     let sysCalls = FoundationScriptSystemCalls()
     var mode = logging ?? false ? AskMode.LOG : AskMode.QUIET
     mode = mode.with(logConfig: sysCalls.seekEnv(.CLUTCH_LOG))
-    return ClutchDriver(sysCalls: sysCalls, mode: mode)
+    return Self(sysCalls: sysCalls, mode: mode)
   }
   /// Run clutch nest/script operations implied by input arguments.
   ///
@@ -53,7 +53,7 @@ public struct ClutchDriver {
     let sysCalls = FoundationScriptSystemCalls()
     var (ask, mode) = AskData.read(args, cwd: cwd, sysCalls: sysCalls)
     mode = mode.with(logConfig: sysCalls.seekEnv(.CLUTCH_LOG))
-    let driver = ClutchDriver(sysCalls: sysCalls, mode: mode)
+    let driver = Self(sysCalls: sysCalls, mode: mode)
     try await driver.runAsk(cwd: cwd, args: args, ask: ask)
   }
 

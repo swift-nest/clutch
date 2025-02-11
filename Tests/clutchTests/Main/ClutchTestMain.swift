@@ -18,7 +18,7 @@ extension FoundationScriptSystemCalls: SystemCallsSendable {}
 
   public static func mainPeek(args: [String]) throws {
     Task {
-      var me = ClutchTestMain()
+      var me = Self()
       me.args = args
       do {
         try await me.run()

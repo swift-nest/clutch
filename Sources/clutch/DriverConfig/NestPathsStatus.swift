@@ -20,7 +20,7 @@ extension DriverConfig {
       NestKeyItem[NestKey] ?? NestKey.NA
     }
 
-    public func adding(items: [NestItem]) -> NestPathsStatus {
+    public func adding(items: [NestItem]) -> Self {
       if items.isEmpty {
         return self
       }

@@ -33,7 +33,7 @@ extension DriverConfig {
     /// Convert to ``Kind/nameNest`` if not already by injecting nest
     /// - Parameter nest: Optional ``ModuleName`` (ignored if not ``Kind/nestOnly``)
     /// - Returns: ``ModuleName`` with ``Kind/nameNest``, if available
-    func nameNest(_ nest: ModuleName?) -> ModuleName? {
+    func nameNest(_ nest: Self?) -> Self? {
       if kind == .nameNest {
         return self
       }

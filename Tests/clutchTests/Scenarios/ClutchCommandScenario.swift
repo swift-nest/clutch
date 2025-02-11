@@ -18,7 +18,7 @@ enum ClutchCommandScenario: Equatable, CustomStringConvertible {
     case peerStale
     case new
   }
-  public static let allCases: [ClutchCommandScenario] = [
+  public static let allCases: [Self] = [
     .script(.uptodate),
     .script(.binaryGone),
     .script(.binaryStale),

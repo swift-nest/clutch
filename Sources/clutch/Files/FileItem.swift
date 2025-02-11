@@ -20,8 +20,8 @@ public struct FileItem<Key: FileKey>: CustomStringConvertible, Sendable {
     lastModified ?? .ZERO
   }
   public var fullPath: String { filePath.string }
-  public func update(status: FileStatus, lastMod: LastModified?) -> FileItem {
-    FileItem(
+  public func update(status: FileStatus, lastMod: LastModified?) -> Self {
+    Self(
       key: key,
       filePath: filePath,
       status: status,

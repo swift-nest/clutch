@@ -254,11 +254,10 @@ extension ClutchDriver {
 
     /// Box error for transport (by problem) or matching (in tests)
     public struct EquatableError: Equatable, CustomStringConvertible, Sendable {
-      public static func make(_ error: Error) -> EquatableError {
-        EquatableError(error: error)
+      public static func make(_ error: Error) -> Self {
+        Self(error: error)
       }
-      public typealias ME = ClutchDriver.Errors.EquatableError
-      public static func == (lhs: ME, rhs: ME) -> Bool {
+      public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.description == rhs.description
       }
       public let error: Error

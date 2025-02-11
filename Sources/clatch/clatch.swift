@@ -29,7 +29,7 @@ import SystemPackage
       return
     }
     do {
-      var me = Clatch()
+      var me = Self()
       me.args = args
       try await me.run()
     } catch {
@@ -265,7 +265,7 @@ struct Peer {
   let binaryModified: Date
   let stage: Stage
 
-  static func make(from script: String) -> Peer? {
+  static func make(from script: String) -> Self? {
     guard let home = ProcessInfo.processInfo.environment["HOME"] else {
       return nil
     }
@@ -298,7 +298,7 @@ struct Peer {
       sourcePath = sourceDir.appending("\(name).swift")
       sourceDate = lastModified(sourcePath.string)
     }
-    return Peer(
+    return Self(
       name: name,
       scriptPath: path,
       nestPath: nestPath,
