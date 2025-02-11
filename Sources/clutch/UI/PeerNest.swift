@@ -1,6 +1,6 @@
 public typealias NestKey = PeerNest.ResourceKey
 
-public struct PeerNest {
+public enum PeerNest {
 
   /// Summary of resource accessed
   public enum ResourceKey:
