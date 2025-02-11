@@ -74,10 +74,11 @@ public struct ClutchDriver {
   ///   - builder: Builder delegate
   ///   - ask: AskData
   public func runAsk(
-    cwd: FilePath,
+    cwd: FilePath, // TODO: cwd not required?
     args: [String],
     ask: AskData
   ) async throws {
+    _ = cwd
     let makeErr = MakeErr.local.setting(ask: ask.ask, args: args)
 
     // emissions from runAsk(..)

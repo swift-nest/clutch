@@ -49,22 +49,19 @@ struct FileItemSeeker {
   let systemCalls: SystemCalls
 
   public func seek<Key: FileKey>(
-    kind: FileStatus = .file,
+    kind: FileStatus = .file, // TODO: unused - what semantics are expected?
     NestKey: Key,
-    _ path: String,
-    status: FileStatus? = nil
+    _ path: String
   ) -> FileItem<Key> {
-    seekImpl(kind, NestKey, path, false, status: status)
+    _ = kind
+    return seekImpl(NestKey, path)
   }
 
   func seekImpl<Key: FileKey>(
-    _ kind: FileStatus = .file,
     _ NestKey: Key,
-    _ input: String,
-    _ required: Bool,
-    status: FileStatus? = nil
+    _ input: String
   ) -> FileItem<Key> {
-    let status = status ?? systemCalls.seekFileStatus(input)
+    let status = systemCalls.seekFileStatus(input)
     let filePath = FilePath(input)
     let lastModified = !status.exists ? nil : systemCalls.lastModified(input)
     return FileItem(

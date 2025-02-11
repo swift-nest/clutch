@@ -9,7 +9,7 @@ extension DriverConfig {
     let NestKeyItem: [NestKey: NestItem]
     init(_ items: [NestItem]) {
       let kv = items.map { ($0.key, $0) }
-      self.NestKeyItem = Dictionary(kv, uniquingKeysWith: { f, l in f })
+      self.NestKeyItem = Dictionary(kv, uniquingKeysWith: { f, _ in f })
     }
     private init(_ NestKeyItem: [NestKey: NestItem]) {
       self.NestKeyItem = NestKeyItem

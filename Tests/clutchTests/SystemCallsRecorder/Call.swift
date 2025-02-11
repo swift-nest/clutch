@@ -79,15 +79,16 @@ enum Call {
 extension Call.Frame {
   static func frame<T>(
     _ parms: T,
+    returning: Void? = Call.void,
     throwing thrown: Call.Thrown = .notThrowing
   ) -> Call.Frame<T, ()> {
+    _ = returning
     let result: ()? = thrown.wasThrown ? Call.voidNil : Call.void
     return Call.Frame(parms: parms, result: result, thrown: thrown)
   }
   static func frame<T, R>(
     _ parms: T,
-    returning result: R?,
-    throwing thrown: Call.Thrown = .notThrowing
+    returning result: R?
   ) -> Call.Frame<T, R> {
     Call.Frame(parms: parms, result: result, thrown: .notThrowing)
   }

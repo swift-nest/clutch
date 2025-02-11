@@ -493,7 +493,7 @@ enum MakeRecordOfSystemCall {
     _ path: String,
     _ result: Void?
   ) -> SCRec.createDir {
-    record(.createDir, .frame(path))
+    record(.createDir, .frame(path, returning: result))
   }
 
   static func environment(
@@ -528,21 +528,22 @@ enum MakeRecordOfSystemCall {
     _ none: Void,
     _ result: LastModified?
   ) -> SCRec.now {
-    record(.lastModified, .frame((), returning: result))
+    _ = none
+    return record(.lastModified, .frame((), returning: result))
   }
 
   static func printErr(
     _ message: String,
     _ result: Void?
   ) -> SCRec.printErr {
-    record(.printErr, .frame(message))
+    record(.printErr, .frame(message, returning: result))
   }
 
   static func printOut(
     _ message: String,
     _ result: Void?
   ) -> SCRec.printOut {
-    record(.printOut, .frame(message))
+    record(.printOut, .frame(message, returning: result))
   }
 
   static func readFile(
