@@ -20,7 +20,11 @@ extension FoundationScriptSystemCalls: SystemCallsSendable {}
     Task {
       var me = ClutchTestMain()
       me.args = args
-      try await me.run()
+      do {
+        try await me.run()
+      } catch {
+        print("## ClutchTestMain Task error\n\(error)")
+      }
     }
   }
 

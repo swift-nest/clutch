@@ -6,6 +6,8 @@ public typealias AskData = DriverConfig.UserAskKind
 public typealias AskMode = DriverConfig.AskMode
 
 public struct ClutchDriver {
+  // swiftlint:disable:previous type_body_length
+
   public static func main(args: [String]) async {
     do {
       try await runMain(cwd: ".", args: args)
@@ -74,6 +76,7 @@ public struct ClutchDriver {
   ///   - builder: Builder delegate
   ///   - ask: AskData
   public func runAsk(
+    // swiftlint:disable:previous function_body_length
     cwd: FilePath, // TODO: cwd not required?
     args: [String],
     ask: AskData

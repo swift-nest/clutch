@@ -11,7 +11,7 @@ enum SystemCallsType {
   typealias SC = clutchLib.SystemCalls
   typealias Record = Call.Record
   typealias SCRec = SystemCallsFunc
-
+  // swiftlint:disable type_name
   typealias environment = Record<SC, Set<String>, [String: String]>
   typealias lastModified = Record<SC, String, LastModified?>
   typealias fileStatus = Record<SC, String, Bool?>
@@ -23,6 +23,7 @@ enum SystemCallsType {
   typealias readFile = Record<SC, String, String>
   typealias writeFile = Record<SC, (String, String), Void>
   typealias findExecutable = Record<SC, String, String>
+  // swiftlint:enable type_name
 }
 
 public enum SystemCallsFunc: String, Sendable {
