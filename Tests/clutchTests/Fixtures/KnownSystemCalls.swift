@@ -252,10 +252,8 @@ extension KnownSystemCalls {
     if paths.isEmpty || (!deleteMany && paths.count > 1) {
       return false
     }
-    for path in paths {
-      if !removeFileOrDir(path: path) {
-        return false
-      }
+    for path in paths where !removeFileOrDir(path: path) {
+      return false
     }
     return true
   }
