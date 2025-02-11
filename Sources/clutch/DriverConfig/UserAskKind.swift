@@ -27,7 +27,7 @@ extension DriverConfig.UserAskKind {
   }
 
   public var isNestOnly: Bool {
-    if case .commandNest(_, _) = self {
+    if case .commandNest = self {
       return true
     }
     return false

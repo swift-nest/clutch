@@ -164,13 +164,13 @@ extension Errors.Problem {
   }
   var index: Int {
     switch self {
-    case .badSyntax(_): return 0
-    case .dirNotFound(_): return 1
-    case .fileNotFound(_): return 2
-    case .invalidFile(_): return 3
-    case .opFailed(_): return 4
-    case .thrown(_): return 5
-    case .programError(_): return 6
+    case .badSyntax: return 0
+    case .dirNotFound: return 1
+    case .fileNotFound: return 2
+    case .invalidFile: return 3
+    case .opFailed: return 4
+    case .thrown: return 5
+    case .programError: return 6
     }
   }
   static let names = [
