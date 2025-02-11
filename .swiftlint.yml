@@ -1,0 +1,212 @@
+# SwiftLint project declarations
+#
+# [SwiftLint](https://github.com/realm/SwiftLint)
+# [SwiftLint rule declarations](https://realm.github.io/SwiftLint/rule-directory.html)
+# [SwiftLint rule implementation](https://github.com/realm/SwiftLint/tree/main/Source/SwiftLintBuiltInRules/Rules)
+
+## Analyzer rules
+analyzer_rules:
+  - capture_variable
+  - typesafe_array_init
+
+# Not using these analyzer rules:
+# - explicit_self
+# - unused_import
+# - unused_declaration
+
+# Analysis requires file list from fresh xcodebuild:
+#  1. Clean HOME/Library/Developer/Xcode/DerivedData/{project} to build/list all
+#  2. `xcodebuild -scheme Bone -destination 'platform=macOS,arch=arm64e' > build.log`
+#  3. `swiftlint analyze --compiler-log-path build.log`
+
+## Per-rule configurations
+cyclomatic_complexity:
+  ignores_case_statements: true
+
+type_name:
+  min_length:
+    warning: 0
+      
+large_tuple:
+  warning: 5
+
+## Rules added to defaults
+opt_in_rules:
+  - array_init
+  - attributes
+  - balanced_xctest_lifecycle
+  - closure_body_length
+  - closure_end_indentation
+  - collection_alignment
+  - comma_inheritance
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  - convenience_type
+  - direct_return
+  - discarded_notification_center_observer
+  - discouraged_assert
+  - discouraged_none_name
+  - discouraged_object_literal
+  - empty_collection_literal
+  - empty_string
+  - empty_xctest_method
+  - enum_case_associated_values_count
+  - expiring_todo
+  - explicit_init
+  - fatal_error_message
+  - file_name_no_space
+  - final_test_case
+  - first_where
+  - flatmap_over_map_reduce
+  - ibinspectable_in_extension
+  - identical_operands
+  - implicitly_unwrapped_optional
+  - joined_default_parameter
+  - last_where
+  - legacy_multiple
+  - literal_expression_end_indentation
+  - modifier_order
+  - multiline_literal_brackets
+  - multiline_parameters
+  - multiline_parameters_brackets
+  - nimble_operator
+  - no_extension_access_modifier
+  - non_overridable_class_declaration
+  - nslocalizedstring_key
+  - nslocalizedstring_require_bundle
+  - number_separator
+  - object_literal
+  - operator_usage_whitespace
+  - optional_enum_case_matching
+  - overridden_super_call
+  - override_in_extension
+  - pattern_matching_keywords
+  - prefer_self_in_static_references
+  - prefer_self_type_over_type_of_self
+  - prefer_zero_over_explicit_init
+  - prefixed_toplevel_constant
+  - private_action
+  - private_outlet
+  - private_subject
+  - private_swiftui_state
+  - prohibited_interface_builder
+  - prohibited_super_call
+  - quick_discouraged_call
+  - quick_discouraged_focused_test
+  - quick_discouraged_pending_test
+  - raw_value_for_camel_cased_codable_enum
+  - reduce_into
+  - redundant_nil_coalescing
+  - redundant_self_in_closure
+  - redundant_type_annotation
+  - required_enum_case
+  - return_value_from_void_function
+  - self_binding
+  - shorthand_optional_binding
+  - single_test_class
+  - sorted_first_last
+  - sorted_imports
+  - static_operator
+  - strong_iboutlet
+  - superfluous_else
+  - toggle_bool
+  - unavailable_function
+  - unhandled_throwing_task
+  - unowned_variable_capture
+  - untyped_error_in_catch
+  - unused_parameter
+  - xct_specific_matcher
+
+## Default rules excluded
+## First are common, later are clutch-only
+disabled_rules:
+  - identifier_name # too many useful small loop iterators, uppercase enums, ...
+  - opening_brace # injects lines sometimes??
+  - nesting # narrower context is almost always better?
+  - todo # yes, but should not be in public API's
+  - trailing_comma # will become default with SE-0439 for other lists
+  - comment_spacing # start of clutch disabled rules
+  - file_length
+  - for_where
+  - function_body_length
+  - function_parameter_count
+  - line_length
+  - orphaned_doc_comment
+  - prefer_type_checking
+  - trailing_whitespace
+  - type_body_length
+  - unneeded_break_in_switch
+  - vertical_whitespace
+
+## Configuration to consider if enabling  disabled rules
+#function_body_length:
+#  warning: 65
+#  error: 100
+
+#indentation_width:
+#  indentation_width: 2
+
+#line_length: 
+#  warning: 80
+#  ignores_comments: true
+#  ignores_interpolated_strings: true
+
+#nesting:
+#  ignore_typealiases_and_associatedtypes: true
+
+## Rules rejected
+# - anonymous_argument_in_multiline_closure # not clear names are clearer
+# - conditional_returns_on_newline # clearer to me
+# - contrasted_opening_brace # not my style (2400)
+# - discouraged_optional_boolean # used often
+# - discouraged_optional_collection # distinguishes unable vs empty
+# - empty_count # false positives for e.g., `0 <= count && count < range.count`
+# - explicit_acl # implicit access rules are understandable
+# - explicit_type_interface # not always clearer (1000)
+# - explicit_enum_raw_value # not clearer
+# - extension_access_modifier # swift-format does the reverse 
+# - explicit_top_level_acl # implicit is clear enough (??)
+# - file_header # copyright headers not required
+# - let_var_whitespace # extra space not always needed
+# - no_grouping_extension # unclear why - reconsider?
+# - no_magic_numbers # often clearer to use number than name (500)
+# - one_declaration_per_file # unhelpful for non-public code like tests
+# - sorted_enum_cases # prefer logical groupings
+# - strict_fileprivate # private now accessible in other local extensions, but..
+# - test_case_accessibility # newline not required
+# - switch_case_on_newline # depends (442)
+# style is local:
+# - trailing_closure
+# - vertical_parameter_alignment_on_call
+# - vertical_whitespace_between_cases
+# - vertical_whitespace_closing_braces
+# - vertical_whitespace_opening_braces
+# - yoda_condition # habit from C
+
+## Rules OK, but later
+# - file_name
+# - file_types_order
+# - force_unwrapping
+# - function_default_parameter_at_end
+# - lower_acl_than_parent
+# - missing_docs
+# - prefer_key_path # picky? false positives when flatMap null's?
+# - required_deinit
+# - shorthand_argument
+# - type_contents_order
+
+## Rules to consider in other contexts
+#  - accessibility_label_for_image
+#  - accessibility_trait_for_button
+
+
+# Omit this section, to handle file selection when executing tool
+#included:
+#  - Sources
+#  - Tests
+
+# xcode, json, csv, checkstyle, junit, html, emoji, sonarqube, markdown
+reporter: "markdown" 
+
