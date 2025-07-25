@@ -6,7 +6,7 @@
 import Foundation
 #endif
 
-import SystemPackage
+import struct MinSys.FilePath
 
 /// Given script, run executable from nest
 /// after creating, updating, and/or building as needed.
