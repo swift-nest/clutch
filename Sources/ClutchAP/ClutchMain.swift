@@ -1,7 +1,7 @@
 import ArgumentParser
 import clutchLib
 import Foundation  // urk - arg parser is balking on --init
-import SystemPackage
+import struct MinSys.FilePath
 
 typealias ModuleName = DriverConfig.ModuleName
 
@@ -308,5 +308,6 @@ enum APHelp {
   }
 }
 
+// not required in current version
 // s6/SE-0364 permits fully-qualified-names to work for retroactive
-extension ArgumentParser.CommandConfiguration: @unchecked Swift.Sendable {}
+// extension ArgumentParser.CommandConfiguration: @unchecked Swift.Sendable {}
