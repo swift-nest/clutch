@@ -1,6 +1,6 @@
 @testable import clutchLib
 import Foundation
-import SystemPackage
+import struct MinSys.FilePath
 
 extension FoundationScriptSystemCalls: SystemCallsSendable {}
 

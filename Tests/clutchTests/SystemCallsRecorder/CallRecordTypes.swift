@@ -1,6 +1,6 @@
 import clutchLib
 
-import struct SystemPackage.FilePath
+import struct MinSys.FilePath
 
 public protocol SystemCallsSendable: SystemCalls, Sendable {}
 

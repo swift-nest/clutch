@@ -1,5 +1,5 @@
 import clutchLib
-import struct SystemPackage.FilePath
+import struct MinSys.FilePath
 
 /// Record calls and results passed to SystemCalls delegate.
 ///

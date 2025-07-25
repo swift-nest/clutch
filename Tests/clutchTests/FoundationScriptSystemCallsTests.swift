@@ -1,5 +1,5 @@
 @testable import clutchLib
-import struct SystemPackage.FilePath
+import struct MinSys.FilePath
 import XCTest
 
 /// Run actual SystemCalls delegate (without really checking)
