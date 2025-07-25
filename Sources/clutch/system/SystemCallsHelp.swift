@@ -1,4 +1,4 @@
-import SystemPackage
+import struct MinSys.FilePath
 
 extension SystemCalls {
   /// Resolve path as absolute or relative to the working directory.

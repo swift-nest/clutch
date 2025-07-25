@@ -1,4 +1,4 @@
-import struct SystemPackage.FilePath
+import struct MinSys.FilePath
 
 public typealias NestPathsStatus = DriverConfig.NestPathsStatus
 public typealias NestPaths = DriverConfig.NestPaths

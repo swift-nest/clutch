@@ -1,4 +1,4 @@
-import struct SystemPackage.FilePath
+import struct MinSys.FilePath
 
 extension DriverConfig {
   /// Nest directories and files (excluding peer)

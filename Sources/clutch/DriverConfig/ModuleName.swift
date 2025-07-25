@@ -1,4 +1,4 @@
-import struct SystemPackage.FilePath
+import struct MinSys.FilePath
 
 extension DriverConfig {
   /// Validated (by client) as non-empty identifiers for peer module, nest, or both

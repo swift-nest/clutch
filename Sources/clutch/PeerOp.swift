@@ -1,4 +1,4 @@
-import struct SystemPackage.FilePath
+import struct MinSys.FilePath
 
 public struct PeerOp: @unchecked Sendable {
   typealias MakeErr = ClutchDriver.Errors.ErrBuilder

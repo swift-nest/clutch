@@ -1,4 +1,4 @@
-import SystemPackage
+import struct MinSys.FilePath
 
 private typealias ScriptParts = ScriptFilenameParts
 
