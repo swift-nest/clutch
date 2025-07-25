@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.1
 
 import PackageDescription
 
@@ -22,6 +22,8 @@ let settings: [SwiftSetting] = [
   // .enableExperimentalFeature("AccessLevelOnImport"),  // SE-0409
   // .enableUpcomingFeature("InternalImportsByDefault")  // SE-0408
 ]
+let swiftSystemTrait = "useSwiftSystem"
+let sysName = "MinSys"
 let package = Package(
   name: name,
   platforms: [.macOS(.v12)],
@@ -30,6 +32,7 @@ let package = Package(
     .executable(name: clatch, targets: [clatch]),
     .executable(name: clutchArgParser, targets: [clutchArgParser]),
   ],
+  traits: ["useSwiftSystem"],
   dependencies: [
     apple("swift-atomics", "1.2.0"),
     apple("swift-system", "1.4.0"),
@@ -37,15 +40,25 @@ let package = Package(
   ],
   targets: [
     .target(
-      name: "\(name)Lib",
+      name: sysName,
       dependencies: [
-        .product(name: "SystemPackage", package: "swift-system")
-      ],
+        .product(
+          name: "SystemPackage",
+          package: "swift-system",
+          condition: .when(traits: [swiftSystemTrait])
+          )
+      ]
+    ),
+    .target(
+      name: "\(name)Lib",
+      dependencies: [.target(name: sysName)],
       path: "Sources/\(name)"
     ),
     .executableTarget(  // RUN:clutch
       name: name,
-      dependencies: [.target(name: "\(name)Lib")],
+      dependencies: [
+        .target(name: "\(name)Lib"),
+      ],
       path: "Sources/\(name)-tool"
     ),
     .executableTarget(
@@ -57,9 +70,7 @@ let package = Package(
     ),
     .executableTarget(
       name: clatch,
-      dependencies: [
-        .product(name: "SystemPackage", package: "swift-system")
-      ]
+      dependencies: [.target(name: sysName)]
     ),
     .testTarget(
       name: "\(name)Tests",
@@ -75,5 +86,5 @@ let package = Package(
       ])]
     ),
   ],
-  swiftLanguageModes: [.v5]
+  swiftLanguageModes: [.v6]
 )
