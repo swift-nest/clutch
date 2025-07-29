@@ -15,13 +15,6 @@ func apple(
     from: Version(stringLiteral: version)
   )
 }
-let settings: [SwiftSetting] = [
-  .enableUpcomingFeature("ExistentialAny"),
-  .enableUpcomingFeature("FullTypedThrows"),  // SE-0413
-  .enableUpcomingFeature("SameElementRequirements"),  // SE-0393
-  // .enableExperimentalFeature("AccessLevelOnImport"),  // SE-0409
-  // .enableUpcomingFeature("InternalImportsByDefault")  // SE-0408
-]
 let swiftSystemTrait = "useSwiftSystem"
 let sysName = "MinSys"
 let package = Package(
@@ -46,7 +39,13 @@ let package = Package(
           name: "SystemPackage",
           package: "swift-system",
           condition: .when(traits: [swiftSystemTrait])
-          )
+          ),
+        // urk: dup dependency required for or-condition, but SPM flags as dup
+        .product(
+          name: "SystemPackage",
+          package: "swift-system",
+          condition: .when(platforms: [.linux])
+          ),
       ]
     ),
     .target(
