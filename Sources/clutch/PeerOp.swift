@@ -56,9 +56,6 @@ public struct PeerOp: @unchecked Sendable {
     }
 
     #if canImport(Regex) && swift(>=5.8)
-      guard #available(macOS 13, *) else {
-        return listExecutableProductsBeforeRegex(manifest)
-      }
       return try listExecutableProductsWithRegexAfterSwift58(manifest)
     #else
       return listExecutableProductsBeforeRegex(manifest)

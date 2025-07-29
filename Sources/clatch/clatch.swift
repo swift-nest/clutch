@@ -1,7 +1,15 @@
+#if os(Linux)
+@preconcurrency import Foundation
+#if swift(<6.0)
+import FoundationNetworking
+
+#endif
+#else
 // Date, FileManager, ProcessInfo, URL; contains, fputs, range
 import Foundation
+#endif
 
-import struct MinSys.FilePath
+import MinSys
 
 /// Given script, run executable from nest
 /// after creating, updating, and/or building as needed.
@@ -44,7 +52,7 @@ public struct Clatch {
 
     // Exit with error
     func errExit(_ err: String) throws -> Never {
-      fputs("\(err)\n", stderr)
+     SysCalls.printErr(err)
       enum Err: Error {
         case err(String)
       }
@@ -64,7 +72,7 @@ public struct Clatch {
     }
     defer {
       if !completedNormally {
-        fputs(traces.joined(separator: "\n"), stderr)
+        MinStdio.printErr(traces.joined(separator: "\n"))
       }
     }
     trace("peer: \(peer)")
@@ -121,7 +129,7 @@ public struct Clatch {
 }
 enum SysCalls {
   static func printErr(_ message: String) {
-    fputs(message, stderr)  // Darwin
+    MinStdio.printErr(message)
   }
   static func exit(withError: any Error) throws -> Never {
     enum ExitErr: Error { case withErr(_ err: any Error) }
@@ -151,24 +159,12 @@ enum SysCalls {
 #if os(Linux)
     return url.path
 #else
-    if #available(macOS 13.0, *) {
-      return url.path(percentEncoded: false)
-    } else {
-      return url.path
-    }
+    return url.path(percentEncoded: false)
 #endif
   }
 
   private static func newFileUrl(_ path: String) -> URL? {
-    #if os(Linux)
-      return URL(string: "file://\(path)")
-    #else
-      if #unavailable(macOS 13.0) {
-        return NSURL(fileURLWithPath: path).absoluteURL
-      } else {
-        return URL(filePath: path)
-      }
-    #endif
+    MinStdio.newFileUrl(path)
   }
 
   private static func fileUrl(

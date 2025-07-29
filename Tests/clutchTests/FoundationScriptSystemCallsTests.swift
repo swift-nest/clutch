@@ -34,15 +34,8 @@ final class FoundationScriptTests: XCTestCase {
     let basename = "FSSystemCallsTests.tmp"
     let dirname = "\(basename).dir"
     let filename = "\(basename).file"
-    let prefix = "# FoundationScriptTests.\(#function) "
+    let prefix = "# \(#file):\(#function) "
     let calls = FoundationScriptSystemCalls()
-
-    try calls.createDir(dirname)
-
-    if true != calls.fileStatus(dirname) {
-      calls.printErr("\(prefix) Unable to create dir \(dirname) - exiting")
-      return
-    }
 
     srcLoc.ea(.dir, calls.seekFileStatus("."), "CWD - status (true==dir)")
 
@@ -50,11 +43,20 @@ final class FoundationScriptTests: XCTestCase {
 
     srcLoc.ok(0.0 != calls.now().value, "now")
 
-    calls.printErr("\(prefix) printErr\n")  // sigh
+    calls.printErr("\(prefix) printErr\n")  // sigh: newline required
 
     calls.printOut("\(prefix) printOut")
 
-    let path = FilePath(dirname).appending(filename).string
+    // create dir and file
+    try calls.createDir(dirname)
+
+    let dirPath = "./\(dirname)"
+    if true != calls.fileStatus(dirPath) {
+      calls.printErr("\(prefix) Unable to create dir \(dirPath) - exiting")
+      return
+    }
+
+    let path = FilePath(dirPath).appending(filename).string
     let content = filename
 
     var err: (any Error)?
@@ -72,28 +74,35 @@ final class FoundationScriptTests: XCTestCase {
     }
 
     // ------------- bash-dependent code
-    let bash = try? await calls.findExecutable(named: "bash")
-    srcLoc.ok(nil != bash, "bash")
+    let bash = try? await calls.findExecutable(named: "sh")
+    srcLoc.ok(nil != bash, "sh")
     guard let bash else {
-      calls.printOut("\(prefix): no bash, exiting")
+      calls.printOut("\(prefix): no sh, exiting")
       if let err {
         throw err
       }
       return
     }
 
-    calls.printOut("\(prefix) Running bash")
-    try await calls.runProcess(bash, args: ["-c", "echo \"\(prefix) bash\""])
+    calls.printOut("\(prefix) Running sh")
+    try await calls.runProcess(bash, args: ["-c", "echo \"\(prefix) sh\""])
 
     if nil == err, !dirname.isEmpty, !dirname.hasPrefix(".") {
-      calls.printOut("\(prefix): using bash to delete temp dir \(dirname)")
+      calls.printOut("\(prefix): using sh to delete temp dir \(dirname)")
       try await calls.runProcess(bash, args: ["-c", "rm -rf \"\(dirname)\""])
+    } else if let err {
+      calls.printOut("\(prefix): leaving dir \(dirname) to eval error\n\(err)")
     } else {
-      calls.printOut("\(prefix): leaving temp dir \(dirname)")
+      calls.printOut("\(prefix): leaving temp dir \(dirname) as invalid name")
     }
 
     if let err {
-      throw err
+#if os(Linux) && swift(<6.0)
+        let m = "ignoring filesystem race in Linux with Swift < 6.0"
+        calls.printErr("\(prefix): \(m)\n\(err)")
+#else
+        throw err
+#endif
     }
   }
 }
