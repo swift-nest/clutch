@@ -12,15 +12,14 @@
 <summary>
 
 ## Testing
-- Tested on macOS and Linux
+- Tested on macOS with Swift 6.1 and Linux with 5.10-6.1
 - Covers all scenarios and most errors
 </summary>
 
 ### Platforms
-- tested mostly on macOS 13+
-- CI tests macOS 12 & Ubuntu Linux 22.04 with Swift 5.9 and 5.7
-    - Need to test in 5.5 if targeting (arg parser async had an older API)
-- Re-verify that package declarations are compatible back to 5.5
+- macOS 13+ (Swift 6.1)
+- Linux (Swift 5.10, 6.1)
+- See [SPI CI](https://swiftpackageindex.com/swift-nest/clutch/builds) 
 
 ### Automated testing status
 - Some configuration
@@ -31,6 +30,7 @@
 
 ### Manual testing variants
 - Only current macOS tested
+    - unable to build with 5.10 OS toolchains due to SDK issues
 - See main [Scenarios](Tests/clutchTests/Scenarios/ClutchCommandScenario.swift)
 - See [ClutchMainTests](Tests/clutchTests/ClutchMainTests.swift) for manual integration driver
 
@@ -87,7 +87,6 @@
 
 ### Missing features, possible bugs
 - automate user workarounds
-- P1 Test code fails Swift-6 checking on Linux
 - P2 Silence ErrParts on build errors since common and not an error
 - P2 Script/Shwift error text and exit code:
     - On process failure, Script adds `error: fatalError` to stderr stream
@@ -141,13 +140,12 @@
 <summary>
 
 ## Development
-- Copyright headers - not required but conventional...
+- FYI, ignoring copyright headers - not legally required but conventional...
 
 </summary>
 
 ## Development
 ### Missing dev features
-- urk: copyright headers
 - version (command, help string; update as part of tagging)
 - git practices/policies
 - contributor guidelines - default
