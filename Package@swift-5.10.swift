@@ -17,7 +17,7 @@ func apple(
 
 let package = Package(
   name: name,
-  platforms: [ .macOS(.v12) ],
+  platforms: [ .macOS(.v13) ],
   products: [
     .executable(name: name, targets: [name]),
     .executable(name: clatch, targets: [clatch]),

@@ -16,10 +16,10 @@ func apple(
   )
 }
 let swiftSystemTrait = "useSwiftSystem"
-let sysName = "MinSys"
+let minSys = "MinSys"
 let package = Package(
   name: name,
-  platforms: [.macOS(.v12)],
+  platforms: [.macOS(.v13)],
   products: [
     .executable(name: name, targets: [name]),
     .executable(name: clatch, targets: [clatch]),
@@ -33,7 +33,7 @@ let package = Package(
   ],
   targets: [
     .target(
-      name: sysName,
+      name: minSys,
       dependencies: [
         .product(
           name: "SystemPackage",
@@ -50,8 +50,12 @@ let package = Package(
     ),
     .target(
       name: "\(name)Lib",
-      dependencies: [.target(name: sysName)],
+      dependencies: [.target(name: minSys)],
       path: "Sources/\(name)"
+    ),
+    .executableTarget(
+      name: clatch,
+      dependencies: [.target(name: minSys)]
     ),
     .executableTarget(  // RUN:clutch
       name: name,
@@ -66,10 +70,6 @@ let package = Package(
         .target(name: "\(name)Lib"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
-    ),
-    .executableTarget(
-      name: clatch,
-      dependencies: [.target(name: sysName)]
     ),
     .testTarget(
       name: "\(name)Tests",
