@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.10
 
 import PackageDescription
 
@@ -14,6 +14,7 @@ func apple(
     from: Version(stringLiteral: version)
   )
 }
+
 let package = Package(
   name: name,
   platforms: [ .macOS(.v12) ],
@@ -24,15 +25,25 @@ let package = Package(
   ],
   dependencies: [
     apple("swift-atomics", "1.2.0"),
-    apple("swift-system", "1.2.2"),
+    apple("swift-system", "1.4.0"),
     apple("swift-argument-parser", "1.5.0"),
   ],
   targets: [
     .target(
-      name: "\(name)Lib",
+      name: "MinSys",
       dependencies: [
         .product(name: "SystemPackage", package: "swift-system"),
       ],
+      swiftSettings: [
+        .enableExperimentalFeature("AccessLevelOnImport")
+        ]),
+    .executableTarget(
+      name: clatch,
+      dependencies: [ .target(name: "MinSys") ]
+    ),
+    .target(
+      name: "\(name)Lib",
+      dependencies: [ .target(name: "MinSys") ],
       path: "Sources/\(name)"
     ),
     .executableTarget( // RUN:clutch
@@ -49,18 +60,18 @@ let package = Package(
           package: "swift-argument-parser"),
       ]
     ),
-    .executableTarget(
-      name: clatch,
-      dependencies: [
-        .product(name: "SystemPackage", package: "swift-system"),
-      ]
-    ),
     .testTarget(
       name: "\(name)Tests",
       dependencies: [
       .target(name: "\(name)Lib"),
       .product(name: "Atomics", package: "swift-atomics")
-      ]
+      ],
+      // Avoid duplicate main's (in clutch-tool/ and clutchTests/Main/)
+      // We drive ClutchTestMain from ClutchMainTest in test harness.
+      swiftSettings: [.unsafeFlags([
+        "-Xfrontend", "-entry-point-function-name",
+        "-Xfrontend", "ignoreMain",
+      ])]
     ),
   ]
 )

@@ -1,10 +1,4 @@
-// @preconcurrency: on Linux, stderr flagged as mutable static
-#if os(Linux)
-@preconcurrency import Foundation
-#else
-// Date FileManager fputs LocalizedError ObjcBool ProcessInfo  URLResourceKey
 import Foundation
-#endif
 
 typealias FS = FoundationScript
 

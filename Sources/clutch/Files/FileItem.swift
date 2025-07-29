@@ -1,18 +1,9 @@
-#if swift(>=6)
-  import struct MinSys.FilePath
-#else
-  @preconcurrency import struct MinSys.FilePath
-#endif
-
-#if useSwiftSystem
-// TODO P0: remove as unneeded per libray version?
-// s6/SE-0364 permits fully-qualified-names to work for retroactive
-//extension MinSys.FilePath: @unchecked Swift.Sendable {}
-#endif
+import struct MinSys.FilePath
 
 public protocol FileKey: Hashable, Sendable {
   var str: String { get }  // TODO: rename
 }
+
 public struct FileItem<Key: FileKey>: CustomStringConvertible, Sendable {
 
   public let key: Key

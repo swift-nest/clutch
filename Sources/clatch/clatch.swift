@@ -1,10 +1,5 @@
-// @preconcurrency: on Linux, stderr flagged as mutable static
-#if os(Linux)
-@preconcurrency import Foundation
-#else
 // Date, FileManager, ProcessInfo, URL; contains, fputs, range
 import Foundation
-#endif
 
 import struct MinSys.FilePath
 
