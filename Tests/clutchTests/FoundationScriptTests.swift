@@ -73,10 +73,10 @@ final class FoundationScriptTests: XCTestCase {
       err = error
     }
 
-    // ------------- bash-dependent code
-    let bash = try? await calls.findExecutable(named: "sh")
-    srcLoc.ok(nil != bash, "sh")
-    guard let bash else {
+    // ------------- shell-dependent code
+    let shell = try? await calls.findExecutable(named: "sh")
+    srcLoc.ok(nil != shell, "sh")
+    guard let shell else {
       calls.printOut("\(prefix): no sh, exiting")
       if let err {
         throw err
@@ -85,11 +85,11 @@ final class FoundationScriptTests: XCTestCase {
     }
 
     calls.printOut("\(prefix) Running sh")
-    try await calls.runProcess(bash, args: ["-c", "echo \"\(prefix) sh\""])
+    try await calls.runProcess(shell, args: ["-c", "echo \"\(prefix) sh\""])
 
     if nil == err, !dirname.isEmpty, !dirname.hasPrefix(".") {
       calls.printOut("\(prefix): using sh to delete temp dir \(dirname)")
-      try await calls.runProcess(bash, args: ["-c", "rm -rf \"\(dirname)\""])
+      try await calls.runProcess(shell, args: ["-c", "rm -rf \"\(dirname)\""])
     } else if let err {
       calls.printOut("\(prefix): leaving dir \(dirname) to eval error\n\(err)")
     } else {
